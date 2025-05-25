@@ -1,0 +1,279 @@
+// Prisma Schema para CRM
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuarios
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstname String
+  lastname  String
+  rol       UserRole @default(EMPRENDEDOR)
+  subRol    String?  // Para ASISTENTE_RRHH, ASISTENTE_COMERCIAL, etc.
+  phone     String?
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  createdClients    Client[]       @relation("CreatedBy")
+  assignedClients   Client[]       @relation("AssignedTo")
+  createdSales      Sale[]         @relation("CreatedBy")
+  assignedSales     Sale[]         @relation("AssignedTo")
+  createdTasks      Task[]         @relation("CreatedBy")
+  assignedTasks     Task[]         @relation("AssignedTo")
+  pipelineItems     PipelineItem[] @relation("AssignedTo")
+  hrCandidates      HRCandidate[]  @relation("AssignedTo")
+
+  @@map("users")
+}
+
+// Modelo de Clientes
+model Client {
+  id              String        @id @default(cuid())
+  nombre          String
+  apellido        String
+  email           String?
+  telefono        String
+  direccion       String?
+  empresa         String?
+  cargo           String?
+  source          ClientSource  @default(OTRO)
+  estado          ClientStatus  @default(ACTIVO)
+  etapa           String?       // Prospecto, Lead, Cliente
+  lastContact     DateTime?
+  notas           String?
+  tags            String[]      // Array de etiquetas
+  customFields    Json?         // Campos personalizados
+  
+  // Relaciones
+  createdBy       User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById     String
+  assignedTo      User?         @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId    String?
+  
+  sales           Sale[]
+  pipelineItems   PipelineItem[]
+  tasks           Task[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("clients")
+}
+
+// Modelo de Ventas
+model Sale {
+  id                String        @id @default(cuid())
+  fecha             DateTime
+  clienteNombre     String
+  productos         Json          // Objeto con arrays de productos por categoría
+  precioLista       Float
+  modalidadPago     PaymentMethod @default(EFECTIVO)
+  cuotas            String?
+  valorCuota        Float?
+  anticipoAcordado  Float
+  deudaAnticipo     Float         @default(0)
+  fechaCobroTotal   DateTime
+  regaloVenta       Boolean       @default(false)
+  detalleRegalo     String?
+  observaciones     String?
+  requiereFactura   Boolean       @default(false)
+  datosFactura      String?
+  origen            SaleSource    @default(OTRO)
+  referido          String?
+  esAgregado        Boolean       @default(false)
+  
+  // Relaciones
+  client            Client?       @relation(fields: [clientId], references: [id])
+  clientId          String?
+  createdBy         User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById       String
+  assignedTo        User?         @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId      String?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("sales")
+}
+
+// Modelo de Pipeline de Ventas
+model PipelineItem {
+  id              String           @id @default(cuid())
+  name            String
+  phone           String
+  products        String[]         // Array de productos
+  value           String?
+  priority        Priority         @default(MEDIA)
+  status          PipelineStatus   @default(NUEVO)
+  lastContact     DateTime
+  demoDate        DateTime?
+  deliveryDate    DateTime?
+  paymentPlan     String?
+  notes           String?
+  tags            String[]         // Array de etiquetas
+  
+  // Relaciones
+  client          Client?          @relation(fields: [clientId], references: [id])
+  clientId        String?
+  assignedTo      User?            @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId    String?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("pipeline_items")
+}
+
+// Modelo de Tareas
+model Task {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  type            TaskType      @default(LLAMADA)
+  status          TaskStatus    @default(PENDING)
+  priority        Priority      @default(MEDIA)
+  dueDate         DateTime
+  reminderEnabled Boolean       @default(false)
+  reminderTime    String?       // minutos antes
+  eventId         String?       // ID del evento en Google Calendar
+  calendarId      String?       // ID del calendario
+  relatedTo       String?       // ID del cliente o contacto relacionado
+  
+  // Relaciones
+  client          Client?       @relation(fields: [clientId], references: [id])
+  clientId        String?
+  createdBy       User          @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById     String
+  assignedTo      User          @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId    String
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("tasks")
+}
+
+// Modelo de Candidatos RRHH
+model HRCandidate {
+  id              String        @id @default(cuid())
+  nombre          String
+  apellido        String
+  email           String
+  telefono        String
+  puesto          String
+  fuente          String
+  estado          HRStatus      @default(PENDIENTE)
+  fechaContacto   DateTime
+  notas           String?
+  skills          String[]      // Array de habilidades
+  
+  // Relaciones
+  assignedTo      User?         @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedToId    String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("hr_candidates")
+}
+
+// Enums
+enum UserRole {
+  SUPER_ADMIN
+  DISTRIBUIDOR
+  EMPRENDEDOR
+  ASISTENTE
+}
+
+enum ClientSource {
+  LANDING
+  REFERIDO
+  DERIVADO
+  STAND
+  CONVENIO
+  URNA
+  EMBAJADOR
+  ANUNCIO
+  GOOGLE_CONTACTS
+  OTRO
+}
+
+enum ClientStatus {
+  ACTIVO
+  INACTIVO
+}
+
+enum PaymentMethod {
+  CONTADO
+  EFECTIVO
+  TARJETA
+  TRANSFERENCIA
+  FINANCIADO
+}
+
+enum SaleSource {
+  REFERIDO
+  BASE
+  EXHIBICION
+  DIGITAL
+  STAND
+  CONVENIO
+  URNA
+  EMBAJADOR
+  ANUNCIO
+  OTRO
+}
+
+enum PipelineStatus {
+  NUEVO
+  CONTACTADO
+  CITA_AGENDADA
+  SIN_RESPUESTA
+  REPROGRAMAR
+  NO_VENTA
+  IRRELEVANTE
+  NO_QUIERE_SPV
+  NO_QUIERE_DEMO
+  VENTA_AGREGADO
+  VENTA_NUEVA
+  VENTA_CAIDA
+}
+
+enum Priority {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+enum TaskType {
+  LLAMADA
+  EMAIL
+  REUNION
+  SEGUIMIENTO
+  DOCUMENTO
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum HRStatus {
+  PENDIENTE
+  CONTACTADO
+  ENTREVISTA
+  SELECCIONADO
+  RECHAZADO
+}
