@@ -65,14 +65,31 @@ const validationRules = {
   ],
   
   pipelineItem: [
-    body('name')
+    body('clientId')
       .notEmpty()
-      .withMessage('El nombre es requerido')
-      .trim(),
-    body('phone')
+      .withMessage('El ID del cliente es requerido')
+      .isString()
+      .withMessage('El ID del cliente debe ser una cadena válida'),
+    body('products')
+      .notEmpty()
+      .withMessage('Los productos son requeridos')
+      .isArray()
+      .withMessage('Los productos deben ser un array'),
+    body('products.*')
+      .isString()
+      .trim()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Cada producto debe tener entre 1 y 100 caracteres'),
+    body('value')
+      .optional({ nullable: true })
+      .isString()
+      .trim()
+      .isLength({ max: 20 })
+      .withMessage('El valor no puede exceder 20 caracteres'),
+    body('priority')
       .optional()
-      .isMobilePhone('any')
-      .withMessage('Número de teléfono inválido'),
+      .isIn(['ALTA', 'MEDIA', 'BAJA'])
+      .withMessage('Prioridad inválida'),
     body('status')
       .optional()
       .isIn([
@@ -81,17 +98,43 @@ const validationRules = {
         'NO_QUIERE_DEMO', 'VENTA_AGREGADO', 'VENTA_NUEVA', 'VENTA_CAIDA'
       ])
       .withMessage('Estado inválido'),
-    body('priority')
-      .optional()
-      .isIn(['ALTA', 'MEDIA', 'BAJA'])
-      .withMessage('Prioridad inválida'),
-    body('products')
+    body('lastContact')
+      .notEmpty()
+      .withMessage('La fecha del último contacto es requerida')
+      .isISO8601()
+      .withMessage('La fecha del último contacto debe tener un formato válido'),
+    body('demoDate')
+      .optional({ nullable: true })
+      .isISO8601()
+      .withMessage('La fecha de demo debe tener un formato válido'),
+    body('deliveryDate')
+      .optional({ nullable: true })
+      .isISO8601()
+      .withMessage('La fecha de entrega debe tener un formato válido'),
+    body('paymentPlan')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 200 })
+      .withMessage('El plan de pago no puede exceder 200 caracteres'),
+    body('notes')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 1000 })
+      .withMessage('Las notas no pueden exceder 1000 caracteres'),
+    body('tags')
       .optional()
       .isArray()
-      .withMessage('Los productos deben ser un array'),
-    body('notes')
+      .withMessage('Las etiquetas deben ser un array'),
+    body('tags.*')
       .optional()
+      .isString()
       .trim()
+      .isLength({ min: 1, max: 20 })
+      .withMessage('Cada etiqueta debe tener entre 1 y 20 caracteres'),
+    body('assignedToId')
+      .optional({ nullable: true })
+      .isString()
+      .withMessage('El ID del usuario asignado debe ser una cadena válida')
   ],
 
   client: [

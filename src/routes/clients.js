@@ -14,7 +14,8 @@ const {
     exportClients,
     importClients,
     bulkUpdateClients,
-    duplicateClient
+    duplicateClient,
+    importContacts // 🚀 NUEVA IMPORTACIÓN
 } = require('../controllers/clientsController');
 
 const router = express.Router();
@@ -138,5 +139,16 @@ router.post('/:id/duplicate', duplicateClient);
  * @access  Private
  */
 router.delete('/:id', deleteClient);
+
+
+
+/**
+ * @route   POST /api/clients/import-contacts
+ * @desc    Importar contactos desde Google Contacts u otras fuentes
+ * @access  Private
+ * @body    { contacts: Array<Contact> }
+ */
+router.post('/import-contacts', importContacts);
+
 
 module.exports = router;

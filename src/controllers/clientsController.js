@@ -6,19 +6,19 @@ const prisma = new PrismaClient();
 // Obtener todos los clientes
 const getAllClients = async (req, res) => {
     try {
-        const { 
-            page = 1, 
-            limit = 50, 
-            search, 
-            source, 
-            estado, 
+        const {
+            page = 1,
+            limit = 50,
+            search,
+            source,
+            estado,
             etapa,
             assignedTo,
             tags,
             sortBy = 'updatedAt',
             sortOrder = 'desc'
         } = req.query;
-        
+
         const skip = (page - 1) * limit;
 
         // Construir filtros
@@ -362,9 +362,9 @@ const deleteClient = async (req, res) => {
         }
 
         // Verificar si tiene registros relacionados
-        const hasRelatedRecords = existingClient._count.sales > 0 || 
-                                 existingClient._count.tasks > 0 || 
-                                 existingClient._count.pipelineItems > 0;
+        const hasRelatedRecords = existingClient._count.sales > 0 ||
+            existingClient._count.tasks > 0 ||
+            existingClient._count.pipelineItems > 0;
 
         if (hasRelatedRecords) {
             return res.status(400).json({
@@ -425,8 +425,8 @@ const getClientStats = async (req, res) => {
             recentClients
         ] = await Promise.all([
             prisma.client.count({ where }),
-            prisma.client.count({ 
-                where: { ...where, estado: 'ACTIVO' } 
+            prisma.client.count({
+                where: { ...where, estado: 'ACTIVO' }
             }),
             prisma.client.groupBy({
                 by: ['source'],
@@ -634,7 +634,7 @@ const exportClients = async (req, res) => {
                 source: client.source,
                 estado: client.estado,
                 etapa: client.etapa,
-                assignedTo: client.assignedTo ? 
+                assignedTo: client.assignedTo ?
                     `${client.assignedTo.firstname} ${client.assignedTo.lastname}` : '',
                 createdBy: `${client.createdBy.firstname} ${client.createdBy.lastname}`,
                 createdAt: client.createdAt.toLocaleDateString(),
@@ -652,7 +652,7 @@ const exportClients = async (req, res) => {
 
         // Configurar respuesta
         const fileName = `clientes_${new Date().toISOString().split('T')[0]}.xlsx`;
-        
+
         res.setHeader(
             'Content-Type',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -681,7 +681,7 @@ const importClients = async (req, res) => {
 
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(req.file.buffer);
-        
+
         const worksheet = workbook.getWorksheet(1);
         const clients = [];
         const errors = [];
@@ -920,6 +920,173 @@ const duplicateClient = async (req, res) => {
     }
 };
 
+const importContacts = async (req, res) => {
+    try {
+        const { contacts } = req.body;
+
+        console.log(`[CLIENTS] Importando ${contacts?.length || 0} contactos...`);
+
+        if (!contacts || !Array.isArray(contacts) || contacts.length === 0) {
+            return res.status(400).json({
+                error: 'No hay contactos para importar',
+                details: 'Se requiere un array de contactos válido'
+            });
+        }
+
+        const results = {
+            successful: 0,
+            failed: 0,
+            total: contacts.length,
+            errors: [],
+            successfulContacts: [],
+            duplicates: []
+        };
+
+        console.log(`[CLIENTS] Procesando ${contacts.length} contactos...`);
+
+        // Procesar cada contacto individualmente
+        for (let i = 0; i < contacts.length; i++) {
+            const contact = contacts[i];
+
+            try {
+                console.log(`[CLIENTS] Procesando contacto ${i + 1}/${contacts.length}: ${contact.nombre} ${contact.apellido}`);
+
+                // Mapear contacto a formato de cliente
+                const clientData = {
+                    nombre: contact.nombre?.trim() || 'Sin Nombre',
+                    apellido: contact.apellido?.trim() || 'Sin Apellido',
+                    email: contact.email?.trim() || null,
+                    email2: contact.email2?.trim() || null,
+                    telefono: contact.telefono?.trim() || '',
+                    telefono2: contact.telefono2?.trim() || null,
+                    empresa: contact.empresa?.trim() || null,
+                    cargo: contact.cargo?.trim() || null,
+                    direccion: contact.direccion?.trim() || null,
+                    source: contact.source || 'GOOGLE_CONTACTS',
+                    estado: contact.estado || 'ACTIVO',
+                    etapa: contact.etapa || 'Prospecto',
+                    tags: Array.isArray(contact.tags) ? contact.tags : ['importado'],
+                    notas: contact.notas || `Importado el ${new Date().toLocaleDateString()}`,
+                    createdById: req.user.id,
+                    assignedToId: req.user.id
+                };
+
+                // Validaciones básicas
+                if (!clientData.nombre || clientData.nombre === 'Sin Nombre') {
+                    throw new Error('Nombre es requerido');
+                }
+
+                if (!clientData.telefono) {
+                    throw new Error('Teléfono es requerido');
+                }
+
+                // Verificar duplicados por teléfono o email
+                const existingClient = await prisma.client.findFirst({
+                    where: {
+                        OR: [
+                            { telefono: clientData.telefono },
+                            clientData.email ? { email: clientData.email } : null
+                        ].filter(Boolean)
+                    },
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
+                        telefono: true,
+                        email: true
+                    }
+                });
+
+                if (existingClient) {
+                    console.log(`[CLIENTS] ⚠️ Contacto duplicado: ${clientData.nombre} ${clientData.apellido}`);
+                    results.duplicates.push({
+                        contact: clientData,
+                        existingClient: existingClient
+                    });
+                    results.failed++;
+                    continue;
+                }
+
+                // Crear cliente
+                const newClient = await prisma.client.create({
+                    data: clientData,
+                    include: {
+                        createdBy: {
+                            select: {
+                                id: true,
+                                firstname: true,
+                                lastname: true
+                            }
+                        },
+                        assignedTo: {
+                            select: {
+                                id: true,
+                                firstname: true,
+                                lastname: true
+                            }
+                        }
+                    }
+                });
+
+                results.successfulContacts.push(newClient);
+                results.successful++;
+
+                console.log(`[CLIENTS] ✅ Cliente creado: ${newClient.id} - ${newClient.nombre} ${newClient.apellido}`);
+
+            } catch (error) {
+                console.error(`[CLIENTS] ❌ Error procesando contacto ${i + 1}:`, error.message);
+                results.failed++;
+                results.errors.push({
+                    contact: contact,
+                    error: error.message,
+                    index: i + 1
+                });
+            }
+        }
+
+        console.log(`[CLIENTS] ✅ Importación completada:`, {
+            successful: results.successful,
+            failed: results.failed,
+            duplicates: results.duplicates.length,
+            total: results.total
+        });
+
+        // Respuesta con resumen completo
+        res.status(200).json({
+            message: 'Importación de contactos completada',
+            summary: {
+                successful: results.successful,
+                failed: results.failed,
+                duplicates: results.duplicates.length,
+                total: results.total
+            },
+            results: {
+                successfulContacts: results.successfulContacts,
+                duplicates: results.duplicates.map(d => ({
+                    nombre: d.contact.nombre,
+                    apellido: d.contact.apellido,
+                    telefono: d.contact.telefono,
+                    existingId: d.existingClient.id
+                })),
+                errors: results.errors.map(e => ({
+                    nombre: e.contact.nombre,
+                    apellido: e.contact.apellido,
+                    error: e.error,
+                    index: e.index
+                }))
+            }
+        });
+
+    } catch (error) {
+        console.error('[CLIENTS] Error en importación de contactos:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
+// Agregar al final del archivo antes del module.exports:
 module.exports = {
     getAllClients,
     getClientById,
@@ -931,5 +1098,6 @@ module.exports = {
     exportClients,
     importClients,
     bulkUpdateClients,
-    duplicateClient
+    duplicateClient,
+    importContacts // 🚀 NUEVA FUNCIÓN
 };

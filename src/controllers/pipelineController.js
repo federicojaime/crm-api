@@ -2,10 +2,38 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+// Función para crear historial de movimientos
+const createPipelineHistory = async (pipelineItemId, action, oldData = null, newData = null, userId) => {
+    try {
+        await prisma.pipelineHistory.create({
+            data: {
+                pipelineItemId,
+                action, // 'CREATED', 'STATUS_CHANGED', 'UPDATED', 'ASSIGNED', 'DELETED'
+                oldData: oldData ? JSON.stringify(oldData) : null,
+                newData: newData ? JSON.stringify(newData) : null,
+                changedById: userId,
+                timestamp: new Date()
+            }
+        });
+    } catch (error) {
+        console.error('Error creando historial:', error);
+        // No fallar la operación principal por error en historial
+    }
+};
+
 // Obtener todos los items del pipeline
 const getAllPipelineItems = async (req, res) => {
     try {
-        const { status, priority, assignedTo, search, page = 1, limit = 50 } = req.query;
+        const { 
+            status, 
+            priority, 
+            assignedTo, 
+            search, 
+            page = 1, 
+            limit = 50,
+            clientId 
+        } = req.query;
+        
         const skip = (page - 1) * limit;
 
         // Construir filtros
@@ -26,11 +54,25 @@ const getAllPipelineItems = async (req, res) => {
             where.priority = priority;
         }
 
+        if (clientId) {
+            where.clientId = clientId;
+        }
+
         if (search) {
             where.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
-                { phone: { contains: search, mode: 'insensitive' } },
-                { notes: { contains: search, mode: 'insensitive' } }
+                { 
+                    client: {
+                        OR: [
+                            { nombre: { contains: search, mode: 'insensitive' } },
+                            { apellido: { contains: search, mode: 'insensitive' } },
+                            { email: { contains: search, mode: 'insensitive' } },
+                            { telefono: { contains: search, mode: 'insensitive' } },
+                            { empresa: { contains: search, mode: 'insensitive' } }
+                        ]
+                    }
+                },
+                { notes: { contains: search, mode: 'insensitive' } },
+                { products: { hasSome: [search] } }
             ];
         }
 
@@ -44,7 +86,11 @@ const getAllPipelineItems = async (req, res) => {
                             id: true,
                             nombre: true,
                             apellido: true,
-                            email: true
+                            email: true,
+                            telefono: true,
+                            empresa: true,
+                            source: true,
+                            etapa: true
                         }
                     },
                     assignedTo: {
@@ -52,6 +98,11 @@ const getAllPipelineItems = async (req, res) => {
                             id: true,
                             firstname: true,
                             lastname: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            history: true
                         }
                     }
                 },
@@ -104,7 +155,11 @@ const getPipelineByStatus = async (req, res) => {
                         id: true,
                         nombre: true,
                         apellido: true,
-                        email: true
+                        email: true,
+                        telefono: true,
+                        empresa: true,
+                        source: true,
+                        etapa: true
                     }
                 },
                 assignedTo: {
@@ -150,15 +205,46 @@ const getPipelineByStatus = async (req, res) => {
     }
 };
 
-// Crear nuevo item en el pipeline
+// Crear nuevo item en el pipeline (DEBE tener clientId)
 const createPipelineItem = async (req, res) => {
     try {
         const data = req.body;
+
+        // Validar que clientId sea obligatorio
+        if (!data.clientId) {
+            return res.status(400).json({
+                error: 'El ID del cliente es obligatorio'
+            });
+        }
+
+        // Verificar que el cliente existe
+        const client = await prisma.client.findUnique({
+            where: { id: data.clientId }
+        });
+
+        if (!client) {
+            return res.status(404).json({
+                error: 'Cliente no encontrado'
+            });
+        }
+
+        // Verificar permisos sobre el cliente si es EMPRENDEDOR
+        if (req.user.rol === 'EMPRENDEDOR') {
+            if (client.assignedToId !== req.user.id && client.createdById !== req.user.id) {
+                return res.status(403).json({
+                    error: 'No tienes permisos para crear pipeline para este cliente'
+                });
+            }
+        }
 
         // Asignar al usuario actual si no se especifica otro
         if (!data.assignedToId) {
             data.assignedToId = req.user.id;
         }
+
+        // Remover campos que ya no son necesarios (ahora vienen del cliente)
+        delete data.name;
+        delete data.phone;
 
         const item = await prisma.pipelineItem.create({
             data,
@@ -168,7 +254,11 @@ const createPipelineItem = async (req, res) => {
                         id: true,
                         nombre: true,
                         apellido: true,
-                        email: true
+                        email: true,
+                        telefono: true,
+                        empresa: true,
+                        source: true,
+                        etapa: true
                     }
                 },
                 assignedTo: {
@@ -180,6 +270,21 @@ const createPipelineItem = async (req, res) => {
                 }
             }
         });
+
+        // Crear historial
+        await createPipelineHistory(
+            item.id,
+            'CREATED',
+            null,
+            {
+                status: item.status,
+                priority: item.priority,
+                products: item.products,
+                value: item.value,
+                assignedToId: item.assignedToId
+            },
+            req.user.id
+        );
 
         res.status(201).json({
             message: 'Item del pipeline creado exitosamente',
@@ -194,7 +299,7 @@ const createPipelineItem = async (req, res) => {
     }
 };
 
-// Obtener item del pipeline por ID
+// Obtener item del pipeline por ID con historial
 const getPipelineItemById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -209,7 +314,14 @@ const getPipelineItemById = async (req, res) => {
                         apellido: true,
                         email: true,
                         telefono: true,
-                        direccion: true
+                        empresa: true,
+                        cargo: true,
+                        direccion: true,
+                        source: true,
+                        estado: true,
+                        etapa: true,
+                        tags: true,
+                        customFields: true
                     }
                 },
                 assignedTo: {
@@ -219,6 +331,18 @@ const getPipelineItemById = async (req, res) => {
                         lastname: true,
                         email: true
                     }
+                },
+                history: {
+                    include: {
+                        changedBy: {
+                            select: {
+                                id: true,
+                                firstname: true,
+                                lastname: true
+                            }
+                        }
+                    },
+                    orderBy: { timestamp: 'desc' }
                 }
             }
         });
@@ -252,7 +376,7 @@ const updatePipelineItem = async (req, res) => {
         const { id } = req.params;
         const data = req.body;
 
-        // Verificar que el item existe
+        // Obtener item actual para historial
         const existingItem = await prisma.pipelineItem.findUnique({
             where: { id }
         });
@@ -270,6 +394,11 @@ const updatePipelineItem = async (req, res) => {
             });
         }
 
+        // Remover campos que no deben actualizarse aquí
+        delete data.name;
+        delete data.phone;
+        delete data.clientId; // No permitir cambiar cliente
+
         const updatedItem = await prisma.pipelineItem.update({
             where: { id },
             data,
@@ -279,7 +408,11 @@ const updatePipelineItem = async (req, res) => {
                         id: true,
                         nombre: true,
                         apellido: true,
-                        email: true
+                        email: true,
+                        telefono: true,
+                        empresa: true,
+                        source: true,
+                        etapa: true
                     }
                 },
                 assignedTo: {
@@ -291,6 +424,27 @@ const updatePipelineItem = async (req, res) => {
                 }
             }
         });
+
+        // Crear historial de cambios
+        const changes = {};
+        Object.keys(data).forEach(key => {
+            if (existingItem[key] !== data[key]) {
+                changes[key] = {
+                    from: existingItem[key],
+                    to: data[key]
+                };
+            }
+        });
+
+        if (Object.keys(changes).length > 0) {
+            await createPipelineHistory(
+                id,
+                'UPDATED',
+                changes,
+                data,
+                req.user.id
+            );
+        }
 
         res.json({
             message: 'Item del pipeline actualizado exitosamente',
@@ -311,7 +465,7 @@ const updateItemStatus = async (req, res) => {
         const { id } = req.params;
         const { status, position } = req.body;
 
-        // Verificar que el item existe
+        // Obtener item actual
         const existingItem = await prisma.pipelineItem.findUnique({
             where: { id }
         });
@@ -329,6 +483,8 @@ const updateItemStatus = async (req, res) => {
             });
         }
 
+        const oldStatus = existingItem.status;
+
         // Actualizar estado
         const updatedItem = await prisma.pipelineItem.update({
             where: { id },
@@ -337,6 +493,16 @@ const updateItemStatus = async (req, res) => {
                 updatedAt: new Date()
             },
             include: {
+                client: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
+                        email: true,
+                        telefono: true,
+                        empresa: true
+                    }
+                },
                 assignedTo: {
                     select: {
                         id: true,
@@ -346,6 +512,23 @@ const updateItemStatus = async (req, res) => {
                 }
             }
         });
+
+        // Crear historial del cambio de estado
+        await createPipelineHistory(
+            id,
+            'STATUS_CHANGED',
+            { status: oldStatus },
+            { status: status },
+            req.user.id
+        );
+
+        // Si es una venta, actualizar etapa del cliente
+        if (['VENTA_NUEVA', 'VENTA_AGREGADO'].includes(status)) {
+            await prisma.client.update({
+                where: { id: existingItem.clientId },
+                data: { etapa: 'Cliente' }
+            });
+        }
 
         res.json({
             message: 'Estado actualizado exitosamente',
@@ -360,6 +543,52 @@ const updateItemStatus = async (req, res) => {
     }
 };
 
+// Obtener historial de un item
+const getPipelineItemHistory = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Verificar que el item existe y permisos
+        const item = await prisma.pipelineItem.findUnique({
+            where: { id }
+        });
+
+        if (!item) {
+            return res.status(404).json({
+                error: 'Item del pipeline no encontrado'
+            });
+        }
+
+        if (req.user.rol === 'EMPRENDEDOR' && item.assignedToId !== req.user.id) {
+            return res.status(403).json({
+                error: 'No tienes permisos para ver el historial de este item'
+            });
+        }
+
+        const history = await prisma.pipelineHistory.findMany({
+            where: { pipelineItemId: id },
+            include: {
+                changedBy: {
+                    select: {
+                        id: true,
+                        firstname: true,
+                        lastname: true
+                    }
+                }
+            },
+            orderBy: { timestamp: 'desc' }
+        });
+
+        res.json({ history });
+
+    } catch (error) {
+        console.error('Error obteniendo historial:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor'
+        });
+    }
+};
+
 // Eliminar item del pipeline
 const deletePipelineItem = async (req, res) => {
     try {
@@ -367,7 +596,15 @@ const deletePipelineItem = async (req, res) => {
 
         // Verificar que el item existe
         const existingItem = await prisma.pipelineItem.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                client: {
+                    select: {
+                        nombre: true,
+                        apellido: true
+                    }
+                }
+            }
         });
 
         if (!existingItem) {
@@ -382,6 +619,21 @@ const deletePipelineItem = async (req, res) => {
                 error: 'No tienes permisos para eliminar este item'
             });
         }
+
+        // Crear historial antes de eliminar
+        await createPipelineHistory(
+            id,
+            'DELETED',
+            {
+                status: existingItem.status,
+                priority: existingItem.priority,
+                products: existingItem.products,
+                value: existingItem.value,
+                clientName: `${existingItem.client.nombre} ${existingItem.client.apellido}`
+            },
+            null,
+            req.user.id
+        );
 
         await prisma.pipelineItem.delete({
             where: { id }
@@ -426,7 +678,8 @@ const getPipelineStats = async (req, res) => {
         const statsByStatus = await prisma.pipelineItem.groupBy({
             by: ['status'],
             where,
-            _count: { _all: true }
+            _count: { _all: true },
+            _sum: { value: true }
         });
 
         // Estadísticas por prioridad
@@ -447,38 +700,30 @@ const getPipelineStats = async (req, res) => {
             }
         });
 
+        // Valor total del pipeline
+        const totalValue = await prisma.pipelineItem.aggregate({
+            where,
+            _sum: { value: true }
+        });
+
         // Tasa de conversión
         const conversionRate = totalItems > 0 ? (convertedItems / totalItems) * 100 : 0;
 
-        // Items por usuario (solo para admins/distribuidores)
-        let statsByUser = [];
-        if (['SUPER_ADMIN', 'DISTRIBUIDOR'].includes(req.user.rol)) {
-            statsByUser = await prisma.pipelineItem.groupBy({
-                by: ['assignedToId'],
-                where,
-                _count: { _all: true }
-            });
-
-            // Obtener nombres de usuarios
-            const userIds = statsByUser.map(stat => stat.assignedToId).filter(Boolean);
-            const users = await prisma.user.findMany({
-                where: { id: { in: userIds } },
-                select: { id: true, firstname: true, lastname: true }
-            });
-
-            statsByUser = statsByUser.map(stat => ({
-                ...stat,
-                user: users.find(u => u.id === stat.assignedToId)
-            }));
-        }
+        // Clientes únicos en pipeline
+        const uniqueClients = await prisma.pipelineItem.findMany({
+            where,
+            select: { clientId: true },
+            distinct: ['clientId']
+        });
 
         res.json({
             total: totalItems,
             converted: convertedItems,
             conversionRate: parseFloat(conversionRate.toFixed(2)),
+            totalValue: totalValue._sum.value || 0,
+            uniqueClients: uniqueClients.length,
             byStatus: statsByStatus,
-            byPriority: statsByPriority,
-            byUser: statsByUser
+            byPriority: statsByPriority
         });
 
     } catch (error) {
@@ -503,8 +748,17 @@ const searchPipelineItems = async (req, res) => {
         // Construir filtros
         const where = {
             OR: [
-                { name: { contains: q, mode: 'insensitive' } },
-                { phone: { contains: q, mode: 'insensitive' } },
+                {
+                    client: {
+                        OR: [
+                            { nombre: { contains: q, mode: 'insensitive' } },
+                            { apellido: { contains: q, mode: 'insensitive' } },
+                            { email: { contains: q, mode: 'insensitive' } },
+                            { telefono: { contains: q, mode: 'insensitive' } },
+                            { empresa: { contains: q, mode: 'insensitive' } }
+                        ]
+                    }
+                },
                 { notes: { contains: q, mode: 'insensitive' } },
                 { products: { hasSome: [q] } }
             ]
@@ -531,7 +785,9 @@ const searchPipelineItems = async (req, res) => {
                         id: true,
                         nombre: true,
                         apellido: true,
-                        email: true
+                        email: true,
+                        telefono: true,
+                        empresa: true
                     }
                 },
                 assignedTo: {
@@ -585,8 +841,8 @@ const duplicatePipelineItem = async (req, res) => {
         const duplicatedItem = await prisma.pipelineItem.create({
             data: {
                 ...itemData,
-                name: `${itemData.name} (Copia)`,
-                status: 'NUEVO' // Resetear estado
+                status: 'NUEVO', // Resetear estado
+                notes: `${itemData.notes} (Copia)`.substring(0, 500)
             },
             include: {
                 client: {
@@ -594,7 +850,9 @@ const duplicatePipelineItem = async (req, res) => {
                         id: true,
                         nombre: true,
                         apellido: true,
-                        email: true
+                        email: true,
+                        telefono: true,
+                        empresa: true
                     }
                 },
                 assignedTo: {
@@ -606,6 +864,18 @@ const duplicatePipelineItem = async (req, res) => {
                 }
             }
         });
+
+        // Crear historial
+        await createPipelineHistory(
+            duplicatedItem.id,
+            'CREATED',
+            null,
+            {
+                ...itemData,
+                duplicatedFrom: id
+            },
+            req.user.id
+        );
 
         res.status(201).json({
             message: 'Item duplicado exitosamente',
@@ -648,11 +918,46 @@ const bulkUpdatePipelineItems = async (req, res) => {
             }
         }
 
+        // Obtener items originales para historial
+        const originalItems = await prisma.pipelineItem.findMany({
+            where: { id: { in: itemIds } },
+            select: {
+                id: true,
+                status: true,
+                priority: true,
+                assignedToId: true,
+                value: true
+            }
+        });
+
         // Actualizar items
         const result = await prisma.pipelineItem.updateMany({
             where: { id: { in: itemIds } },
             data: updates
         });
+
+        // Crear historial para cada item
+        for (const originalItem of originalItems) {
+            const changes = {};
+            Object.keys(updates).forEach(key => {
+                if (originalItem[key] !== updates[key]) {
+                    changes[key] = {
+                        from: originalItem[key],
+                        to: updates[key]
+                    };
+                }
+            });
+
+            if (Object.keys(changes).length > 0) {
+                await createPipelineHistory(
+                    originalItem.id,
+                    'BULK_UPDATED',
+                    changes,
+                    updates,
+                    req.user.id
+                );
+            }
+        }
 
         res.json({
             message: `${result.count} items actualizados exitosamente`,
@@ -678,5 +983,6 @@ module.exports = {
     getPipelineStats,
     searchPipelineItems,
     duplicatePipelineItem,
-    bulkUpdatePipelineItems
+    bulkUpdatePipelineItems,
+    getPipelineItemHistory
 };

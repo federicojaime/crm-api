@@ -12,7 +12,8 @@ const {
     getPipelineStats,
     searchPipelineItems,
     duplicatePipelineItem,
-    bulkUpdatePipelineItems
+    bulkUpdatePipelineItems,
+    getPipelineItemHistory
 } = require('../controllers/pipelineController');
 
 const router = express.Router();
@@ -50,7 +51,7 @@ router.get('/search', searchPipelineItems);
 
 /**
  * @route   POST /api/pipeline
- * @desc    Crear nuevo item en el pipeline
+ * @desc    Crear nuevo item en el pipeline (clientId obligatorio)
  * @access  Private
  */
 router.post('/', validate('pipelineItem'), createPipelineItem);
@@ -68,10 +69,17 @@ router.post(
 
 /**
  * @route   GET /api/pipeline/:id
- * @desc    Obtener item del pipeline por ID
+ * @desc    Obtener item del pipeline por ID con historial completo
  * @access  Private
  */
 router.get('/:id', getPipelineItemById);
+
+/**
+ * @route   GET /api/pipeline/:id/history
+ * @desc    Obtener historial de movimientos de un item
+ * @access  Private
+ */
+router.get('/:id/history', getPipelineItemHistory);
 
 /**
  * @route   PUT /api/pipeline/:id
