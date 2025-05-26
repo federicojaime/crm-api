@@ -12,9 +12,9 @@ const PORT = process.env.PORT || 3000;
 const authRoutes = require('./src/routes/auth');
 const usersRoutes = require('./src/routes/users');
 const pipelineRoutes = require('./src/routes/pipeline');
+const clientsRoutes = require('./src/routes/clients');
 
 // TODO: Crear estas rutas más tarde
-// const clientsRoutes = require('./src/routes/clients');
 // const salesRoutes = require('./src/routes/sales');
 // const tasksRoutes = require('./src/routes/tasks');
 // const hrRoutes = require('./src/routes/hr');
@@ -81,7 +81,8 @@ app.get('/', (req, res) => {
             health: '/health',
             auth: '/api/auth/*',
             users: '/api/users/*',
-            pipeline: '/api/pipeline/*'
+            pipeline: '/api/pipeline/*',
+            clients: '/api/clients/*'
         },
         docs: 'https://documenter.getpostman.com/view/tu-coleccion'
     });
@@ -91,9 +92,9 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/pipeline', pipelineRoutes);
+app.use('/api/clients', clientsRoutes);
 
 // TODO: Agregar estas rutas más tarde
-// app.use('/api/clients', clientsRoutes);
 // app.use('/api/sales', salesRoutes);
 // app.use('/api/tasks', tasksRoutes);
 // app.use('/api/hr', hrRoutes);
@@ -111,7 +112,8 @@ app.use('*', (req, res) => {
             'POST /api/auth/login',
             'GET /api/auth/profile',
             'GET /api/users',
-            'GET /api/pipeline'
+            'GET /api/pipeline',
+            'GET /api/clients'
         ]
     });
 });
@@ -139,6 +141,19 @@ app.use((err, req, res, next) => {
         });
     }
 
+    // Error de Multer (archivos)
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                error: 'El archivo es demasiado grande. Máximo 10MB.'
+            });
+        }
+        return res.status(400).json({
+            error: 'Error al procesar el archivo',
+            details: err.message
+        });
+    }
+
     res.status(500).json({
         error: 'Error interno del servidor',
         ...(process.env.NODE_ENV === 'development' && { details: err.message })
@@ -163,5 +178,6 @@ app.listen(PORT, () => {
    GET  http://localhost:${PORT}/api/auth/profile
    GET  http://localhost:${PORT}/api/users
    GET  http://localhost:${PORT}/api/pipeline
+   GET  http://localhost:${PORT}/api/clients
     `);
 });

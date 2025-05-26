@@ -1583,6 +1583,2290 @@
             "key": "demo_item_id",
             "value": "",
             "type": "string"
+        },
+        {
+            "info": {
+                "_postman_id": "crm-api-collection-2024-v2",
+                "name": "CRM API - Sistema Completo v2",
+                "description": "Colección completa de endpoints para el Sistema CRM API. Incluye autenticación, usuarios, pipeline, clientes y más funcionalidades.",
+                "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                "_exporter_id": "12345678"
+            },
+            "item": [
+                {
+                    "name": "🏠 Health & Info",
+                    "item": [
+                        {
+                            "name": "Health Check",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/health",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "health"
+                                    ]
+                                },
+                                "description": "Verificar el estado de la API"
+                            }
+                        },
+                        {
+                            "name": "API Info",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        ""
+                                    ]
+                                },
+                                "description": "Información general de la API y endpoints disponibles"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🔐 Autenticación",
+                    "item": [
+                        {
+                            "name": "Registrar Usuario",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('auth_token', response.token);",
+                                            "    pm.environment.set('user_id', response.user.id);",
+                                            "    console.log('Token guardado:', response.token);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\",\n  \"firstname\": \"Super\",\n  \"lastname\": \"Admin\",\n  \"rol\": \"SUPER_ADMIN\",\n  \"phone\": \"+54911234567\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "auth",
+                                        "register"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Login",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 200) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('auth_token', response.token);",
+                                            "    pm.environment.set('user_id', response.user.id);",
+                                            "    pm.environment.set('user_rol', response.user.rol);",
+                                            "    console.log('Login exitoso');",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "👥 Usuarios",
+                    "item": [
+                        {
+                            "name": "Listar Usuarios",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/users?page=1&limit=50",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "users"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "50"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Crear Usuario",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"emprendedor@crm.com\",\n  \"password\": \"password123\",\n  \"firstname\": \"Juan\",\n  \"lastname\": \"Pérez\",\n  \"rol\": \"EMPRENDEDOR\",\n  \"phone\": \"+54911234568\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/users",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "users"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "👤 Clientes",
+                    "item": [
+                        {
+                            "name": "Listar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients?page=1&limit=50",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "50"
+                                        },
+                                        {
+                                            "key": "search",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "source",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "estado",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "etapa",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "assignedTo",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Obtener lista de clientes con filtros y paginación"
+                            }
+                        },
+                        {
+                            "name": "Crear Cliente",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('client_id', response.client.id);",
+                                            "    console.log('Cliente creado con ID:', response.client.id);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"nombre\": \"Ana\",\n  \"apellido\": \"García\",\n  \"email\": \"ana.garcia@email.com\",\n  \"telefono\": \"+54911555666\",\n  \"empresa\": \"Tech Solutions SA\",\n  \"cargo\": \"Gerente de Marketing\",\n  \"source\": \"REFERIDO\",\n  \"estado\": \"ACTIVO\",\n  \"etapa\": \"Prospecto\",\n  \"direccion\": \"Av. Corrientes 1234, CABA\",\n  \"tags\": [\"premium\", \"interesada\", \"tecnología\"],\n  \"notas\": \"Cliente muy interesada en nuestros servicios de marketing digital\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients"
+                                    ]
+                                },
+                                "description": "Crear nuevo cliente"
+                            }
+                        },
+                        {
+                            "name": "Obtener Cliente por ID",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}"
+                                    ]
+                                },
+                                "description": "Obtener información detallada de un cliente"
+                            }
+                        },
+                        {
+                            "name": "Actualizar Cliente",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"nombre\": \"Ana María\",\n  \"apellido\": \"García López\",\n  \"email\": \"ana.garcia@email.com\",\n  \"telefono\": \"+54911555666\",\n  \"empresa\": \"Tech Solutions SA\",\n  \"cargo\": \"Directora de Marketing\",\n  \"etapa\": \"Cliente\",\n  \"tags\": [\"premium\", \"cliente-vip\", \"tecnología\"],\n  \"notas\": \"Cliente actualizada a VIP después de primera compra\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}"
+                                    ]
+                                },
+                                "description": "Actualizar información de un cliente"
+                            }
+                        },
+                        {
+                            "name": "Buscar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/search?q=ana&limit=10",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "q",
+                                            "value": "ana"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "10"
+                                        },
+                                        {
+                                            "key": "source",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "estado",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Buscar clientes por nombre, email, teléfono, etc."
+                            }
+                        },
+                        {
+                            "name": "Estadísticas de Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/stats?period=30",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "stats"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "period",
+                                            "value": "30"
+                                        },
+                                        {
+                                            "key": "assignedTo",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Obtener estadísticas de clientes"
+                            }
+                        },
+                        {
+                            "name": "Exportar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/export?format=xlsx",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "export"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "format",
+                                            "value": "xlsx"
+                                        },
+                                        {
+                                            "key": "source",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "estado",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Exportar clientes a Excel"
+                            }
+                        },
+                        {
+                            "name": "Descargar Template de Importación",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/import-template",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "import-template"
+                                    ]
+                                },
+                                "description": "Descargar template Excel para importar clientes"
+                            }
+                        },
+                        {
+                            "name": "Importar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "file",
+                                            "type": "file",
+                                            "src": "",
+                                            "description": "Archivo Excel con clientes"
+                                        }
+                                    ]
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/import",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "import"
+                                    ]
+                                },
+                                "description": "Importar clientes desde archivo Excel"
+                            }
+                        },
+                        {
+                            "name": "Duplicar Cliente",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}/duplicate",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}",
+                                        "duplicate"
+                                    ]
+                                },
+                                "description": "Duplicar un cliente existente"
+                            }
+                        },
+                        {
+                            "name": "Actualización Masiva",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"clientIds\": [\"{{client_id}}\"],\n  \"updates\": {\n    \"estado\": \"ACTIVO\",\n    \"etapa\": \"Cliente\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/bulk-update",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "bulk-update"
+                                    ]
+                                },
+                                "description": "Actualización masiva de múltiples clientes (solo SUPER_ADMIN y DISTRIBUIDOR)"
+                            }
+                        },
+                        {
+                            "name": "Eliminar Cliente",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}"
+                                    ]
+                                },
+                                "description": "Eliminar cliente (solo si no tiene registros relacionados)"
+                            }
+                        }
+                    ],
+                    "description": "Gestión completa de clientes con importación/exportación"
+                },
+                {
+                    "name": "🎯 Pipeline",
+                    "item": [
+                        {
+                            "name": "Listar Items Pipeline",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline?page=1&limit=50",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "50"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Vista Kanban",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline/kanban",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline",
+                                        "kanban"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Crear Item Pipeline",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('pipeline_item_id', response.item.id);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"María González\",\n  \"phone\": \"+54911234569\",\n  \"products\": [\"Curso Avanzado\", \"Material Premium\"],\n  \"value\": \"2500\",\n  \"priority\": \"ALTA\",\n  \"status\": \"NUEVO\",\n  \"lastContact\": \"2024-01-15T14:30:00.000Z\",\n  \"notes\": \"Cliente muy interesada\",\n  \"tags\": [\"premium\", \"urgente\"]\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🧪 Tests Clientes",
+                    "item": [
+                        {
+                            "name": "Flujo Completo - Clientes",
+                            "item": [
+                                {
+                                    "name": "01 - Login Admin",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Login exitoso', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response).to.have.property('token');",
+                                                    "    pm.environment.set('auth_token', response.token);",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+                                        },
+                                        "url": {
+                                            "raw": "{{base_url}}/api/auth/login",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "auth",
+                                                "login"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "02 - Descargar Template",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Template descargado', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    pm.expect(pm.response.headers.get('Content-Type')).to.include('spreadsheetml');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/import-template",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "import-template"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "03 - Crear Cliente Test",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Cliente creado exitosamente', function () {",
+                                                    "    pm.response.to.have.status(201);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.client).to.have.property('id');",
+                                                    "    pm.environment.set('test_client_id', response.client.id);",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Mendoza\",\n  \"email\": \"carlos.mendoza@test.com\",\n  \"telefono\": \"+54911777888\",\n  \"empresa\": \"Empresa Test\",\n  \"source\": \"REFERIDO\",\n  \"estado\": \"ACTIVO\",\n  \"etapa\": \"Prospecto\",\n  \"tags\": [\"test\", \"demo\"]\n}"
+                                        },
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "04 - Buscar Cliente",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Búsqueda exitosa', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.clients).to.be.an('array');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/search?q=carlos",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "search"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "q",
+                                                    "value": "carlos"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "05 - Actualizar Cliente",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Cliente actualizado', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.client.etapa).to.equal('Cliente');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "PUT",
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Mendoza\",\n  \"email\": \"carlos.mendoza@test.com\",\n  \"telefono\": \"+54911777888\",\n  \"empresa\": \"Empresa Test\",\n  \"etapa\": \"Cliente\",\n  \"tags\": [\"test\", \"cliente-activo\"]\n}"
+                                        },
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/{{test_client_id}}",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "{{test_client_id}}"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "06 - Duplicar Cliente",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Cliente duplicado', function () {",
+                                                    "    pm.response.to.have.status(201);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.client.nombre).to.include('(Copia)');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "POST",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/{{test_client_id}}/duplicate",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "{{test_client_id}}",
+                                                "duplicate"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "07 - Ver Estadísticas",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Estadísticas obtenidas', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response).to.have.property('total');",
+                                                    "    pm.expect(response).to.have.property('active');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/stats",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "stats"
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            "description": "Flujo completo de prueba para clientes"
+                        }
+                    ]
+                }
+            ],
+            "variable": [
+                {
+                    "key": "base_url",
+                    "value": "http://localhost:3000"
+                },
+                {
+                    "key": "auth_token",
+                    "value": ""
+                },
+                {
+                    "key": "user_id",
+                    "value": ""
+                },
+                {
+                    "key": "client_id",
+                    "value": ""
+                },
+                {
+                    "key": "test_client_id",
+                    "value": ""
+                },
+                {
+                    "key": "pipeline_item_id",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "info": {
+                "_postman_id": "crm-api-collection-2024-v2",
+                "name": "CRM API - Sistema Completo v2",
+                "description": "Colección completa de endpoints para el Sistema CRM API. Incluye autenticación, usuarios, pipeline, clientes y más funcionalidades.",
+                "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+                "_exporter_id": "12345678"
+            },
+            "item": [
+                {
+                    "name": "🏠 Health & Info",
+                    "item": [
+                        {
+                            "name": "Health Check",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/health",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "health"
+                                    ]
+                                },
+                                "description": "Verificar el estado de la API"
+                            }
+                        },
+                        {
+                            "name": "API Info",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        ""
+                                    ]
+                                },
+                                "description": "Información general de la API y endpoints disponibles"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🔐 Autenticación",
+                    "item": [
+                        {
+                            "name": "Registrar Usuario",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('auth_token', response.token);",
+                                            "    pm.environment.set('user_id', response.user.id);",
+                                            "    console.log('Token guardado:', response.token);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\",\n  \"firstname\": \"Super\",\n  \"lastname\": \"Admin\",\n  \"rol\": \"SUPER_ADMIN\",\n  \"phone\": \"+54911234567\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "auth",
+                                        "register"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Login",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 200) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('auth_token', response.token);",
+                                            "    pm.environment.set('user_id', response.user.id);",
+                                            "    pm.environment.set('user_rol', response.user.rol);",
+                                            "    console.log('Login exitoso');",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "👥 Usuarios",
+                    "item": [
+                        {
+                            "name": "Listar Usuarios",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/users?page=1&limit=50",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "users"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "50"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Crear Usuario",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"emprendedor@crm.com\",\n  \"password\": \"password123\",\n  \"firstname\": \"Juan\",\n  \"lastname\": \"Pérez\",\n  \"rol\": \"EMPRENDEDOR\",\n  \"phone\": \"+54911234568\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/users",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "users"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "👤 Clientes",
+                    "item": [
+                        {
+                            "name": "Listar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients?page=1&limit=50",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "50"
+                                        },
+                                        {
+                                            "key": "search",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "source",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "estado",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "etapa",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "assignedTo",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Obtener lista de clientes con filtros y paginación"
+                            }
+                        },
+                        {
+                            "name": "Crear Cliente",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('client_id', response.client.id);",
+                                            "    console.log('Cliente creado con ID:', response.client.id);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"nombre\": \"Ana\",\n  \"apellido\": \"García\",\n  \"email\": \"ana.garcia@email.com\",\n  \"telefono\": \"+54911555666\",\n  \"empresa\": \"Tech Solutions SA\",\n  \"cargo\": \"Gerente de Marketing\",\n  \"source\": \"REFERIDO\",\n  \"estado\": \"ACTIVO\",\n  \"etapa\": \"Prospecto\",\n  \"direccion\": \"Av. Corrientes 1234, CABA\",\n  \"tags\": [\"premium\", \"interesada\", \"tecnología\"],\n  \"notas\": \"Cliente muy interesada en nuestros servicios de marketing digital\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients"
+                                    ]
+                                },
+                                "description": "Crear nuevo cliente"
+                            }
+                        },
+                        {
+                            "name": "Obtener Cliente por ID",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}"
+                                    ]
+                                },
+                                "description": "Obtener información detallada de un cliente"
+                            }
+                        },
+                        {
+                            "name": "Actualizar Cliente",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"nombre\": \"Ana María\",\n  \"apellido\": \"García López\",\n  \"email\": \"ana.garcia@email.com\",\n  \"telefono\": \"+54911555666\",\n  \"empresa\": \"Tech Solutions SA\",\n  \"cargo\": \"Directora de Marketing\",\n  \"etapa\": \"Cliente\",\n  \"tags\": [\"premium\", \"cliente-vip\", \"tecnología\"],\n  \"notas\": \"Cliente actualizada a VIP después de primera compra\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}"
+                                    ]
+                                },
+                                "description": "Actualizar información de un cliente"
+                            }
+                        },
+                        {
+                            "name": "Buscar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/search?q=ana&limit=10",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "search"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "q",
+                                            "value": "ana"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "10"
+                                        },
+                                        {
+                                            "key": "source",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "estado",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Buscar clientes por nombre, email, teléfono, etc."
+                            }
+                        },
+                        {
+                            "name": "Estadísticas de Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/stats?period=30",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "stats"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "period",
+                                            "value": "30"
+                                        },
+                                        {
+                                            "key": "assignedTo",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Obtener estadísticas de clientes"
+                            }
+                        },
+                        {
+                            "name": "Exportar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/export?format=xlsx",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "export"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "format",
+                                            "value": "xlsx"
+                                        },
+                                        {
+                                            "key": "source",
+                                            "value": "",
+                                            "disabled": true
+                                        },
+                                        {
+                                            "key": "estado",
+                                            "value": "",
+                                            "disabled": true
+                                        }
+                                    ]
+                                },
+                                "description": "Exportar clientes a Excel"
+                            }
+                        },
+                        {
+                            "name": "Descargar Template de Importación",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/import-template",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "import-template"
+                                    ]
+                                },
+                                "description": "Descargar template Excel para importar clientes"
+                            }
+                        },
+                        {
+                            "name": "Importar Clientes",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "formdata",
+                                    "formdata": [
+                                        {
+                                            "key": "file",
+                                            "type": "file",
+                                            "src": "",
+                                            "description": "Archivo Excel con clientes"
+                                        }
+                                    ]
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/import",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "import"
+                                    ]
+                                },
+                                "description": "Importar clientes desde archivo Excel"
+                            }
+                        },
+                        {
+                            "name": "Duplicar Cliente",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}/duplicate",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}",
+                                        "duplicate"
+                                    ]
+                                },
+                                "description": "Duplicar un cliente existente"
+                            }
+                        },
+                        {
+                            "name": "Actualización Masiva",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"clientIds\": [\"{{client_id}}\"],\n  \"updates\": {\n    \"estado\": \"ACTIVO\",\n    \"etapa\": \"Cliente\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/bulk-update",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "bulk-update"
+                                    ]
+                                },
+                                "description": "Actualización masiva de múltiples clientes (solo SUPER_ADMIN y DISTRIBUIDOR)"
+                            }
+                        },
+                        {
+                            "name": "Eliminar Cliente",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "DELETE",
+                                "url": {
+                                    "raw": "{{base_url}}/api/clients/{{client_id}}",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "clients",
+                                        "{{client_id}}"
+                                    ]
+                                },
+                                "description": "Eliminar cliente (solo si no tiene registros relacionados)"
+                            }
+                        }
+                    ],
+                    "description": "Gestión completa de clientes con importación/exportación"
+                },
+                {
+                    "name": "🎯 Pipeline",
+                    "item": [
+                        {
+                            "name": "Listar Items Pipeline",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline?page=1&limit=50",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "50"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Vista Kanban",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline/kanban",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline",
+                                        "kanban"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Crear Item Pipeline",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "if (pm.response.code === 201) {",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('pipeline_item_id', response.item.id);",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"María González\",\n  \"phone\": \"+54911234569\",\n  \"products\": [\"Curso Avanzado\", \"Material Premium\"],\n  \"value\": \"2500\",\n  \"priority\": \"ALTA\",\n  \"status\": \"NUEVO\",\n  \"lastContact\": \"2024-01-15T14:30:00.000Z\",\n  \"notes\": \"Cliente muy interesada\",\n  \"tags\": [\"premium\", \"urgente\"]\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🧪 Tests Clientes",
+                    "item": [
+                        {
+                            "name": "Flujo Completo - Clientes",
+                            "item": [
+                                {
+                                    "name": "01 - Login Admin",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Login exitoso', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response).to.have.property('token');",
+                                                    "    pm.environment.set('auth_token', response.token);",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+                                        },
+                                        "url": {
+                                            "raw": "{{base_url}}/api/auth/login",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "auth",
+                                                "login"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "02 - Descargar Template",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Template descargado', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    pm.expect(pm.response.headers.get('Content-Type')).to.include('spreadsheetml');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/import-template",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "import-template"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "03 - Crear Cliente Test",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Cliente creado exitosamente', function () {",
+                                                    "    pm.response.to.have.status(201);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.client).to.have.property('id');",
+                                                    "    pm.environment.set('test_client_id', response.client.id);",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "POST",
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Mendoza\",\n  \"email\": \"carlos.mendoza@test.com\",\n  \"telefono\": \"+54911777888\",\n  \"empresa\": \"Empresa Test\",\n  \"source\": \"REFERIDO\",\n  \"estado\": \"ACTIVO\",\n  \"etapa\": \"Prospecto\",\n  \"tags\": [\"test\", \"demo\"]\n}"
+                                        },
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "04 - Buscar Cliente",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Búsqueda exitosa', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.clients).to.be.an('array');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/search?q=carlos",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "search"
+                                            ],
+                                            "query": [
+                                                {
+                                                    "key": "q",
+                                                    "value": "carlos"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "05 - Actualizar Cliente",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Cliente actualizado', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.client.etapa).to.equal('Cliente');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "PUT",
+                                        "header": [
+                                            {
+                                                "key": "Content-Type",
+                                                "value": "application/json"
+                                            }
+                                        ],
+                                        "body": {
+                                            "mode": "raw",
+                                            "raw": "{\n  \"nombre\": \"Carlos\",\n  \"apellido\": \"Mendoza\",\n  \"email\": \"carlos.mendoza@test.com\",\n  \"telefono\": \"+54911777888\",\n  \"empresa\": \"Empresa Test\",\n  \"etapa\": \"Cliente\",\n  \"tags\": [\"test\", \"cliente-activo\"]\n}"
+                                        },
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/{{test_client_id}}",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "{{test_client_id}}"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "06 - Duplicar Cliente",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Cliente duplicado', function () {",
+                                                    "    pm.response.to.have.status(201);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response.client.nombre).to.include('(Copia)');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "POST",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/{{test_client_id}}/duplicate",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "{{test_client_id}}",
+                                                "duplicate"
+                                            ]
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "07 - Ver Estadísticas",
+                                    "event": [
+                                        {
+                                            "listen": "test",
+                                            "script": {
+                                                "exec": [
+                                                    "pm.test('Estadísticas obtenidas', function () {",
+                                                    "    pm.response.to.have.status(200);",
+                                                    "    const response = pm.response.json();",
+                                                    "    pm.expect(response).to.have.property('total');",
+                                                    "    pm.expect(response).to.have.property('active');",
+                                                    "});"
+                                                ]
+                                            }
+                                        }
+                                    ],
+                                    "request": {
+                                        "auth": {
+                                            "type": "bearer",
+                                            "bearer": [
+                                                {
+                                                    "key": "token",
+                                                    "value": "{{auth_token}}"
+                                                }
+                                            ]
+                                        },
+                                        "method": "GET",
+                                        "url": {
+                                            "raw": "{{base_url}}/api/clients/stats",
+                                            "host": [
+                                                "{{base_url}}"
+                                            ],
+                                            "path": [
+                                                "api",
+                                                "clients",
+                                                "stats"
+                                            ]
+                                        }
+                                    }
+                                }
+                            ],
+                            "description": "Flujo completo de prueba para clientes"
+                        }
+                    ]
+                }
+            ],
+            "variable": [
+                {
+                    "key": "base_url",
+                    "value": "http://localhost:3000"
+                },
+                {
+                    "key": "auth_token",
+                    "value": ""
+                },
+                {
+                    "key": "user_id",
+                    "value": ""
+                },
+                {
+                    "key": "client_id",
+                    "value": ""
+                },
+                {
+                    "key": "test_client_id",
+                    "value": ""
+                },
+                {
+                    "key": "pipeline_item_id",
+                    "value": ""
+                }
+            ]
         }
     ]
 }

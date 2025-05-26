@@ -83,7 +83,7 @@ const validationRules = {
       .withMessage('Estado inválido'),
     body('priority')
       .optional()
-      .isIn(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
+      .isIn(['ALTA', 'MEDIA', 'BAJA'])
       .withMessage('Prioridad inválida'),
     body('products')
       .optional()
@@ -92,6 +92,266 @@ const validationRules = {
     body('notes')
       .optional()
       .trim()
+  ],
+
+  client: [
+    body('nombre')
+      .notEmpty()
+      .withMessage('El nombre es requerido')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('El nombre debe tener entre 2 y 50 caracteres'),
+    body('apellido')
+      .notEmpty()
+      .withMessage('El apellido es requerido')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('El apellido debe tener entre 2 y 50 caracteres'),
+    body('email')
+      .optional({ nullable: true })
+      .isEmail()
+      .withMessage('Email inválido')
+      .normalizeEmail(),
+    body('telefono')
+      .notEmpty()
+      .withMessage('El teléfono es requerido')
+      .isMobilePhone('any')
+      .withMessage('Número de teléfono inválido'),
+    body('empresa')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('El nombre de la empresa no puede exceder 100 caracteres'),
+    body('cargo')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('El cargo no puede exceder 50 caracteres'),
+    body('direccion')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 200 })
+      .withMessage('La dirección no puede exceder 200 caracteres'),
+    body('source')
+      .optional()
+      .isIn(['LANDING', 'REFERIDO', 'DERIVADO', 'STAND', 'CONVENIO', 'URNA', 'EMBAJADOR', 'ANUNCIO', 'GOOGLE_CONTACTS', 'OTRO'])
+      .withMessage('Fuente inválida'),
+    body('estado')
+      .optional()
+      .isIn(['ACTIVO', 'INACTIVO'])
+      .withMessage('Estado inválido'),
+    body('etapa')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 30 })
+      .withMessage('La etapa no puede exceder 30 caracteres'),
+    body('tags')
+      .optional()
+      .isArray()
+      .withMessage('Las etiquetas deben ser un array'),
+    body('tags.*')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ min: 1, max: 20 })
+      .withMessage('Cada etiqueta debe tener entre 1 y 20 caracteres'),
+    body('notas')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 1000 })
+      .withMessage('Las notas no pueden exceder 1000 caracteres'),
+    body('customFields')
+      .optional({ nullable: true })
+      .isObject()
+      .withMessage('Los campos personalizados deben ser un objeto')
+  ],
+
+  sale: [
+    body('fecha')
+      .notEmpty()
+      .withMessage('La fecha es requerida')
+      .isISO8601()
+      .withMessage('La fecha debe tener un formato válido'),
+    body('clienteNombre')
+      .notEmpty()
+      .withMessage('El nombre del cliente es requerido')
+      .trim()
+      .isLength({ min: 2, max: 100 })
+      .withMessage('El nombre del cliente debe tener entre 2 y 100 caracteres'),
+    body('productos')
+      .notEmpty()
+      .withMessage('Los productos son requeridos')
+      .isObject()
+      .withMessage('Los productos deben ser un objeto'),
+    body('precioLista')
+      .notEmpty()
+      .withMessage('El precio de lista es requerido')
+      .isFloat({ min: 0 })
+      .withMessage('El precio de lista debe ser un número positivo'),
+    body('modalidadPago')
+      .optional()
+      .isIn(['CONTADO', 'EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'FINANCIADO'])
+      .withMessage('Modalidad de pago inválida'),
+    body('cuotas')
+      .optional({ nullable: true })
+      .trim(),
+    body('valorCuota')
+      .optional({ nullable: true })
+      .isFloat({ min: 0 })
+      .withMessage('El valor de la cuota debe ser un número positivo'),
+    body('anticipoAcordado')
+      .notEmpty()
+      .withMessage('El anticipo acordado es requerido')
+      .isFloat({ min: 0 })
+      .withMessage('El anticipo acordado debe ser un número positivo'),
+    body('fechaCobroTotal')
+      .notEmpty()
+      .withMessage('La fecha de cobro total es requerida')
+      .isISO8601()
+      .withMessage('La fecha de cobro total debe tener un formato válido'),
+    body('regaloVenta')
+      .optional()
+      .isBoolean()
+      .withMessage('Regalo de venta debe ser verdadero o falso'),
+    body('detalleRegalo')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 200 })
+      .withMessage('El detalle del regalo no puede exceder 200 caracteres'),
+    body('observaciones')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage('Las observaciones no pueden exceder 500 caracteres'),
+    body('requiereFactura')
+      .optional()
+      .isBoolean()
+      .withMessage('Requiere factura debe ser verdadero o falso'),
+    body('datosFactura')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 300 })
+      .withMessage('Los datos de factura no pueden exceder 300 caracteres'),
+    body('origen')
+      .optional()
+      .isIn(['REFERIDO', 'BASE', 'EXHIBICION', 'DIGITAL', 'STAND', 'CONVENIO', 'URNA', 'EMBAJADOR', 'ANUNCIO', 'OTRO'])
+      .withMessage('Origen inválido'),
+    body('referido')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('El referido no puede exceder 100 caracteres'),
+    body('esAgregado')
+      .optional()
+      .isBoolean()
+      .withMessage('Es agregado debe ser verdadero o falso')
+  ],
+
+  task: [
+    body('title')
+      .notEmpty()
+      .withMessage('El título es requerido')
+      .trim()
+      .isLength({ min: 3, max: 100 })
+      .withMessage('El título debe tener entre 3 y 100 caracteres'),
+    body('description')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage('La descripción no puede exceder 500 caracteres'),
+    body('type')
+      .optional()
+      .isIn(['LLAMADA', 'EMAIL', 'REUNION', 'SEGUIMIENTO', 'DOCUMENTO'])
+      .withMessage('Tipo de tarea inválido'),
+    body('status')
+      .optional()
+      .isIn(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])
+      .withMessage('Estado de tarea inválido'),
+    body('priority')
+      .optional()
+      .isIn(['ALTA', 'MEDIA', 'BAJA'])
+      .withMessage('Prioridad inválida'),
+    body('dueDate')
+      .notEmpty()
+      .withMessage('La fecha de vencimiento es requerida')
+      .isISO8601()
+      .withMessage('La fecha de vencimiento debe tener un formato válido'),
+    body('reminderEnabled')
+      .optional()
+      .isBoolean()
+      .withMessage('Recordatorio habilitado debe ser verdadero o falso'),
+    body('reminderTime')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 10 })
+      .withMessage('El tiempo de recordatorio no puede exceder 10 caracteres'),
+    body('assignedToId')
+      .notEmpty()
+      .withMessage('El usuario asignado es requerido')
+      .isString()
+      .withMessage('El ID del usuario asignado debe ser una cadena válida')
+  ],
+
+  hrCandidate: [
+    body('nombre')
+      .notEmpty()
+      .withMessage('El nombre es requerido')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('El nombre debe tener entre 2 y 50 caracteres'),
+    body('apellido')
+      .notEmpty()
+      .withMessage('El apellido es requerido')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('El apellido debe tener entre 2 y 50 caracteres'),
+    body('email')
+      .notEmpty()
+      .withMessage('El email es requerido')
+      .isEmail()
+      .withMessage('Email inválido')
+      .normalizeEmail(),
+    body('telefono')
+      .notEmpty()
+      .withMessage('El teléfono es requerido')
+      .isMobilePhone('any')
+      .withMessage('Número de teléfono inválido'),
+    body('puesto')
+      .notEmpty()
+      .withMessage('El puesto es requerido')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('El puesto debe tener entre 2 y 50 caracteres'),
+    body('fuente')
+      .notEmpty()
+      .withMessage('La fuente es requerida')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('La fuente debe tener entre 2 y 50 caracteres'),
+    body('estado')
+      .optional()
+      .isIn(['PENDIENTE', 'CONTACTADO', 'ENTREVISTA', 'SELECCIONADO', 'RECHAZADO'])
+      .withMessage('Estado inválido'),
+    body('fechaContacto')
+      .notEmpty()
+      .withMessage('La fecha de contacto es requerida')
+      .isISO8601()
+      .withMessage('La fecha de contacto debe tener un formato válido'),
+    body('notas')
+      .optional({ nullable: true })
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage('Las notas no pueden exceder 500 caracteres'),
+    body('skills')
+      .optional()
+      .isArray()
+      .withMessage('Las habilidades deben ser un array'),
+    body('skills.*')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ min: 1, max: 30 })
+      .withMessage('Cada habilidad debe tener entre 1 y 30 caracteres')
   ],
 
   changePassword: [

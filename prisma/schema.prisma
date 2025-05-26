@@ -36,13 +36,15 @@ model User {
   @@map("users")
 }
 
-// Modelo de Clientes
+// Modelo de Clientes - ACTUALIZADO
 model Client {
   id              String        @id @default(cuid())
   nombre          String
   apellido        String
   email           String?
+  email2          String?       // 📧 NUEVO CAMPO
   telefono        String
+  telefono2       String?       // 📞 NUEVO CAMPO
   direccion       String?
   empresa         String?
   cargo           String?
