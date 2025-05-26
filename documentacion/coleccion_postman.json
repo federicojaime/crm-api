@@ -1,0 +1,1588 @@
+{
+    "info": {
+        "_postman_id": "crm-api-collection-2024",
+        "name": "CRM API - Sistema Completo",
+        "description": "Colección completa de endpoints para el Sistema CRM API. Incluye autenticación, usuarios, pipeline y más funcionalidades por venir.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_exporter_id": "12345678"
+    },
+    "item": [
+        {
+            "name": "🏠 Health & Info",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Verificar el estado de la API"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "API Info",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        },
+                        "description": "Información general de la API y endpoints disponibles"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints de información y estado de la API"
+        },
+        {
+            "name": "🔐 Autenticación",
+            "item": [
+                {
+                    "name": "Registrar Usuario",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('auth_token', response.token);",
+                                    "    pm.environment.set('user_id', response.user.id);",
+                                    "    console.log('Token guardado:', response.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\",\n  \"firstname\": \"Super\",\n  \"lastname\": \"Admin\",\n  \"rol\": \"SUPER_ADMIN\",\n  \"phone\": \"+54911234567\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Registrar un nuevo usuario en el sistema"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('auth_token', response.token);",
+                                    "    pm.environment.set('user_id', response.user.id);",
+                                    "    pm.environment.set('user_rol', response.user.rol);",
+                                    "    console.log('Login exitoso. Token guardado:', response.token);",
+                                    "    console.log('Usuario ID:', response.user.id);",
+                                    "    console.log('Rol:', response.user.rol);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Iniciar sesión y obtener token JWT"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Obtener Perfil",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "profile"
+                            ]
+                        },
+                        "description": "Obtener información del usuario actual"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Perfil",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstname\": \"Super\",\n  \"lastname\": \"Administrador\",\n  \"phone\": \"+54911234567\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "profile"
+                            ]
+                        },
+                        "description": "Actualizar información del perfil del usuario actual"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cambiar Contraseña",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"currentPassword\": \"admin123\",\n  \"newPassword\": \"newpassword456\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/change-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "change-password"
+                            ]
+                        },
+                        "description": "Cambiar la contraseña del usuario actual"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Verificar Token",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/verify",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "verify"
+                            ]
+                        },
+                        "description": "Verificar si el token JWT es válido"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cerrar Sesión",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "Cerrar sesión (invalidar token en cliente)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints de autenticación y gestión de sesiones",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{auth_token}}",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "👥 Usuarios",
+            "item": [
+                {
+                    "name": "Listar Usuarios",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users?page=1&limit=50",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "rol",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "isActive",
+                                    "value": "true",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Obtener lista de usuarios con paginación y filtros"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Obtener Usuario por ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/{{user_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "{{user_id}}"
+                            ]
+                        },
+                        "description": "Obtener información de un usuario específico"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Usuario",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"emprendedor@crm.com\",\n  \"password\": \"password123\",\n  \"firstname\": \"Juan\",\n  \"lastname\": \"Pérez\",\n  \"rol\": \"EMPRENDEDOR\",\n  \"subRol\": \"COMERCIAL\",\n  \"phone\": \"+54911234568\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ]
+                        },
+                        "description": "Crear un nuevo usuario (solo SUPER_ADMIN y DISTRIBUIDOR)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Usuario",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstname\": \"Juan Carlos\",\n  \"lastname\": \"Pérez López\",\n  \"phone\": \"+54911234568\",\n  \"rol\": \"EMPRENDEDOR\",\n  \"subRol\": \"COMERCIAL\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/{{user_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "{{user_id}}"
+                            ]
+                        },
+                        "description": "Actualizar información de un usuario"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cambiar Contraseña de Usuario",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"newPassword\": \"newpassword123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/{{user_id}}/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "{{user_id}}",
+                                "password"
+                            ]
+                        },
+                        "description": "Cambiar contraseña de otro usuario (solo admins)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Desactivar Usuario",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/{{user_id}}/deactivate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "{{user_id}}",
+                                "deactivate"
+                            ]
+                        },
+                        "description": "Desactivar un usuario"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Activar Usuario",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/{{user_id}}/activate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "{{user_id}}",
+                                "activate"
+                            ]
+                        },
+                        "description": "Activar un usuario"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Eliminar Usuario",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/{{user_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "{{user_id}}"
+                            ]
+                        },
+                        "description": "Eliminar usuario permanentemente (solo SUPER_ADMIN)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Estadísticas de Usuarios",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "stats"
+                            ]
+                        },
+                        "description": "Obtener estadísticas generales de usuarios"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestión de usuarios del sistema"
+        },
+        {
+            "name": "🎯 Pipeline",
+            "item": [
+                {
+                    "name": "Listar Items Pipeline",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline?page=1&limit=50",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "assignedTo",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Obtener lista de items del pipeline con filtros y paginación"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Vista Kanban",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/kanban",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "kanban"
+                            ],
+                            "query": [
+                                {
+                                    "key": "assignedTo",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Obtener items agrupados por estado para vista kanban"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Item Pipeline",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('pipeline_item_id', response.item.id);",
+                                    "    console.log('Item creado con ID:', response.item.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"María González\",\n  \"phone\": \"+54911234569\",\n  \"products\": [\"Curso Avanzado\", \"Material Premium\"],\n  \"value\": \"2500\",\n  \"priority\": \"ALTA\",\n  \"status\": \"NUEVO\",\n  \"lastContact\": \"2024-01-15T14:30:00.000Z\",\n  \"demoDate\": \"2024-01-18T16:00:00.000Z\",\n  \"paymentPlan\": \"6 cuotas sin interés\",\n  \"notes\": \"Cliente muy interesada, quiere comenzar pronto\",\n  \"tags\": [\"premium\", \"urgente\", \"referido\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline"
+                            ]
+                        },
+                        "description": "Crear nuevo item en el pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Obtener Item por ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/{{pipeline_item_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "{{pipeline_item_id}}"
+                            ]
+                        },
+                        "description": "Obtener detalles de un item específico del pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Item Pipeline",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"María González\",\n  \"phone\": \"+54911234569\",\n  \"products\": [\"Curso Avanzado\", \"Material Premium\", \"Coaching Personal\"],\n  \"value\": \"3500\",\n  \"priority\": \"ALTA\",\n  \"status\": \"CONTACTADO\",\n  \"demoDate\": \"2024-01-20T10:00:00.000Z\",\n  \"deliveryDate\": \"2024-01-25T14:00:00.000Z\",\n  \"paymentPlan\": \"12 cuotas con tarjeta\",\n  \"notes\": \"Cliente confirmó interés. Se agenda demo para el viernes.\",\n  \"tags\": [\"premium\", \"confirmado\", \"referido\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/{{pipeline_item_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "{{pipeline_item_id}}"
+                            ]
+                        },
+                        "description": "Actualizar información de un item del pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cambiar Estado (Drag & Drop)",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"CITA_AGENDADA\",\n  \"position\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/{{pipeline_item_id}}/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "{{pipeline_item_id}}",
+                                "status"
+                            ]
+                        },
+                        "description": "Cambiar estado de un item (útil para drag & drop)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Duplicar Item",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/{{pipeline_item_id}}/duplicate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "{{pipeline_item_id}}",
+                                "duplicate"
+                            ]
+                        },
+                        "description": "Duplicar un item del pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Eliminar Item",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/{{pipeline_item_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "{{pipeline_item_id}}"
+                            ]
+                        },
+                        "description": "Eliminar un item del pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Estadísticas Pipeline",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/stats?period=30",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "30"
+                                },
+                                {
+                                    "key": "assignedTo",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Obtener estadísticas del pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Buscar Items",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/search?q=maría&limit=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "maría"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Buscar items en el pipeline"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualización Masiva",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"itemIds\": [\"{{pipeline_item_id}}\"],\n  \"updates\": {\n    \"status\": \"CONTACTADO\",\n    \"priority\": \"MEDIA\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/pipeline/bulk-update",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "pipeline",
+                                "bulk-update"
+                            ]
+                        },
+                        "description": "Actualización masiva de múltiples items (solo SUPER_ADMIN y DISTRIBUIDOR)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestión del pipeline de ventas"
+        },
+        {
+            "name": "🚧 Próximos Endpoints",
+            "item": [
+                {
+                    "name": "👥 Clientes (Próximamente)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/clients",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "clients"
+                            ]
+                        },
+                        "description": "Endpoint para gestión de clientes - En desarrollo"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "💰 Ventas (Próximamente)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/sales",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "sales"
+                            ]
+                        },
+                        "description": "Endpoint para registro de ventas - En desarrollo"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "📋 Tareas (Próximamente)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks"
+                            ]
+                        },
+                        "description": "Endpoint para gestión de tareas - En desarrollo"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "👨‍💼 Recursos Humanos (Próximamente)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/hr",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "hr"
+                            ]
+                        },
+                        "description": "Endpoint para gestión de candidatos RRHH - En desarrollo"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Endpoints que estarán disponibles en futuras versiones"
+        },
+        {
+            "name": "🧪 Tests & Ejemplos",
+            "item": [
+                {
+                    "name": "Flujo Completo - Demo",
+                    "item": [
+                        {
+                            "name": "01 - Login Admin",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Login exitoso', function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    const response = pm.response.json();",
+                                            "    pm.expect(response).to.have.property('token');",
+                                            "    pm.environment.set('auth_token', response.token);",
+                                            "    pm.environment.set('user_id', response.user.id);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"admin@crm.com\",\n  \"password\": \"admin123\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "02 - Crear Usuario Emprendedor",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Usuario creado exitosamente', function () {",
+                                            "    pm.response.to.have.status(201);",
+                                            "    const response = pm.response.json();",
+                                            "    pm.expect(response.user).to.have.property('id');",
+                                            "    pm.environment.set('emprendedor_id', response.user.id);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"emprendedor@test.com\",\n  \"password\": \"password123\",\n  \"firstname\": \"Carlos\",\n  \"lastname\": \"Mendoza\",\n  \"rol\": \"EMPRENDEDOR\",\n  \"phone\": \"+54911999888\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/users",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "users"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "03 - Crear Items en Pipeline",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Item pipeline creado', function () {",
+                                            "    pm.response.to.have.status(201);",
+                                            "    const response = pm.response.json();",
+                                            "    pm.environment.set('demo_item_id', response.item.id);",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"Ana Rodríguez\",\n  \"phone\": \"+54911777666\",\n  \"products\": [\"Curso Básico\", \"Kit Inicial\"],\n  \"value\": \"1200\",\n  \"priority\": \"MEDIA\",\n  \"status\": \"NUEVO\",\n  \"lastContact\": \"2024-01-15T09:00:00.000Z\",\n  \"notes\": \"Contacto inicial por WhatsApp\",\n  \"tags\": [\"whatsapp\", \"interesada\"],\n  \"assignedToId\": \"{{emprendedor_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "04 - Ver Vista Kanban",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Vista kanban obtenida', function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    const response = pm.response.json();",
+                                            "    pm.expect(response).to.have.property('pipeline');",
+                                            "    pm.expect(response.pipeline).to.have.property('NUEVO');",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline/kanban",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline",
+                                        "kanban"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "05 - Mover Item a Contactado",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Estado actualizado', function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    const response = pm.response.json();",
+                                            "    pm.expect(response.item.status).to.equal('CONTACTADO');",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PATCH",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"status\": \"CONTACTADO\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline/{{demo_item_id}}/status",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline",
+                                        "{{demo_item_id}}",
+                                        "status"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "06 - Ver Estadísticas",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "pm.test('Estadísticas obtenidas', function () {",
+                                            "    pm.response.to.have.status(200);",
+                                            "    const response = pm.response.json();",
+                                            "    pm.expect(response).to.have.property('total');",
+                                            "    pm.expect(response).to.have.property('byStatus');",
+                                            "});"
+                                        ],
+                                        "type": "text/javascript"
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{auth_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{base_url}}/api/pipeline/stats",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "pipeline",
+                                        "stats"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ],
+                    "description": "Flujo completo de demostración del CRM"
+                }
+            ],
+            "description": "Tests automatizados y flujos de ejemplo"
+        }
+    ],
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Script que se ejecuta antes de cada request",
+                    "console.log('Ejecutando request a:', pm.request.url.toString());",
+                    "",
+                    "// Verificar si hay token para requests autenticados",
+                    "if (pm.request.auth && pm.request.auth.type === 'bearer') {",
+                    "    const token = pm.environment.get('auth_token');",
+                    "    if (!token) {",
+                    "        console.warn('⚠️ No hay token de autenticación. Ejecuta Login primero.');",
+                    "    }",
+                    "}"
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Script que se ejecuta después de cada response",
+                    "",
+                    "// Log básico de respuesta",
+                    "console.log('Response Status:', pm.response.code);",
+                    "console.log('Response Time:', pm.response.responseTime + 'ms');",
+                    "",
+                    "// Verificar errores comunes",
+                    "if (pm.response.code === 401) {",
+                    "    console.error('🔒 Error de autenticación. Verifica tu token.');",
+                    "} else if (pm.response.code === 403) {",
+                    "    console.error('⛔ Sin permisos. Verifica tu rol de usuario.');",
+                    "} else if (pm.response.code === 429) {",
+                    "    console.error('🚦 Rate limit excedido. Espera un momento.');",
+                    "} else if (pm.response.code >= 500) {",
+                    "    console.error('🔥 Error del servidor:', pm.response.json());",
+                    "}",
+                    "",
+                    "// Test genérico de tiempo de respuesta",
+                    "pm.test('Response time is reasonable', function () {",
+                    "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                    "});"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "auth_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_rol",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "pipeline_item_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "emprendedor_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "demo_item_id",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

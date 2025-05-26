@@ -13,8 +13,8 @@ const {
 
 const router = express.Router();
 
-// Rate limiting específico para auth
-const authLimiter = rateLimit({
+// Rate limiting específico para auth PRODUCCION
+/*const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
     max: 5, // 5 intentos por ventana
     message: {
@@ -22,7 +22,20 @@ const authLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
+});*/
+
+// Rate limiting específico para auth TEST
+
+const authLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minuto
+    max: 5, // 5 intentos por minuto
+    message: {
+        error: 'Demasiados intentos de autenticación. Intenta de nuevo en 1 minuto. TEST'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
+
 
 // Rate limiting para registro (menos restrictivo)
 const registerLimiter = rateLimit({

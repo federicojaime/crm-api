@@ -31,9 +31,19 @@ app.use(cors({
     credentials: true
 }));
 
-// Rate limiting
+/* Rate limiting PRODUCCION
 const limiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutos
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // límite de requests por ventana
+    message: {
+        error: 'Demasiadas solicitudes desde esta IP, intenta de nuevo más tarde.'
+    }
+});
+app.use(limiter);*/
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 2 * 60 * 1000, // 2 minutos
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // límite de requests por ventana
     message: {
         error: 'Demasiadas solicitudes desde esta IP, intenta de nuevo más tarde.'
