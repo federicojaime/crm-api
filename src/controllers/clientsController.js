@@ -3,7 +3,46 @@ const ExcelJS = require('exceljs');
 
 const prisma = new PrismaClient();
 
-// Obtener todos los clientes
+// 🚀 FUNCIÓN NUEVA: Construir filtros de usuario
+
+// Obtener todos los clientes (ACTUALIZADO)
+// 🔧 FUNCIÓN CORREGIDA: Construir filtros de usuario
+const buildUserFilters = (user, queryFilters = {}) => {
+    const where = {};
+
+    console.log(`[FILTER-DEBUG] Construyendo filtros para usuario: ${user.firstname} (${user.rol}, ID: ${user.id})`);
+
+    // 🎯 APLICAR FILTROS SEGÚN ROL DEL USUARIO
+    if (user.rol === 'EMPRENDEDOR' || user.rol === 'ASISTENTE') {
+        // ⚠️ CRÍTICO: Solo pueden ver sus clientes y los referidos a ellos
+        where.OR = [
+            { assignedToId: user.id },
+            { createdById: user.id }
+            // { referredById: user.id } // Agregar si tienes este campo
+        ];
+        console.log(`[FILTER-DEBUG] ✅ Aplicando filtro restrictivo para ${user.rol}`);
+        console.log(`[FILTER-DEBUG] Filtro aplicado:`, JSON.stringify(where, null, 2));
+    } else if (user.rol === 'DISTRIBUIDOR') {
+        // Pueden ver todos los clientes (o filtrar por organización si tienes ese campo)
+        console.log(`[FILTER-DEBUG] ⚠️ DISTRIBUIDOR puede ver todos los clientes`);
+        // Si quieres restringir distribuidores por organización:
+        // where.organizationId = user.organizationId;
+    } else if (user.rol === 'SUPER_ADMIN') {
+        // Pueden ver absolutamente todo
+        console.log(`[FILTER-DEBUG] ⚠️ SUPER_ADMIN puede ver todos los clientes`);
+    } else {
+        // Rol no reconocido, aplicar filtro restrictivo por seguridad
+        console.warn(`[FILTER-DEBUG] ⚠️ Rol no reconocido: ${user.rol}. Aplicando filtro restrictivo.`);
+        where.OR = [
+            { assignedToId: user.id },
+            { createdById: user.id }
+        ];
+    }
+
+    return where;
+};
+
+// 🔧 FUNCIÓN CORREGIDA: Obtener todos los clientes
 const getAllClients = async (req, res) => {
     try {
         const {
@@ -13,80 +52,66 @@ const getAllClients = async (req, res) => {
             source,
             estado,
             etapa,
-            assignedTo,
             tags,
             sortBy = 'updatedAt',
             sortOrder = 'desc'
         } = req.query;
 
         const skip = (page - 1) * limit;
+        const userId = req.user.id;
 
-        // Construir filtros
-        const where = {};
+        console.log(`[CLIENTS] 🔍 Usuario: ${req.user.firstname} (${req.user.rol}) - ID: ${userId}`);
 
-        // Filtrar por usuario si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
-            where.OR = [
-                { assignedToId: req.user.id },
-                { createdById: req.user.id }
-            ];
-        } else if (assignedTo) {
-            where.assignedToId = assignedTo;
-        }
+        // 🎯 FILTRO DIRECTO Y SIMPLE
+        const where = {
+            OR: [
+                { assignedToId: userId },
+                { createdById: userId }
+            ]
+        };
 
+        console.log(`[CLIENTS] 🔍 Filtro aplicado:`, JSON.stringify(where, null, 2));
+
+        // Aplicar filtros adicionales
         if (search) {
-            where.OR = [
-                ...where.OR || [],
-                { nombre: { contains: search, mode: 'insensitive' } },
-                { apellido: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } },
-                { telefono: { contains: search, mode: 'insensitive' } },
-                { empresa: { contains: search, mode: 'insensitive' } }
+            where.AND = [
+                { OR: where.OR }, // Mantener el filtro de usuario
+                {
+                    OR: [
+                        { nombre: { contains: search, mode: 'insensitive' } },
+                        { apellido: { contains: search, mode: 'insensitive' } },
+                        { email: { contains: search, mode: 'insensitive' } },
+                        { telefono: { contains: search, mode: 'insensitive' } },
+                        { empresa: { contains: search, mode: 'insensitive' } }
+                    ]
+                }
             ];
+            delete where.OR; // Eliminar el OR original
         }
 
-        if (source) {
-            where.source = source;
-        }
-
-        if (estado) {
-            where.estado = estado;
-        }
-
-        if (etapa) {
-            where.etapa = etapa;
-        }
-
+        if (source) where.source = source;
+        if (estado) where.estado = estado;
+        if (etapa) where.etapa = etapa;
         if (tags) {
             const tagArray = tags.split(',');
             where.tags = { hasSome: tagArray };
         }
 
-        // Obtener clientes con paginación
+        console.log(`[CLIENTS] 🔍 Filtro final:`, JSON.stringify(where, null, 2));
+
+        // Ejecutar consulta
         const [clients, total] = await Promise.all([
             prisma.client.findMany({
                 where,
                 include: {
                     createdBy: {
-                        select: {
-                            id: true,
-                            firstname: true,
-                            lastname: true
-                        }
+                        select: { id: true, firstname: true, lastname: true }
                     },
                     assignedTo: {
-                        select: {
-                            id: true,
-                            firstname: true,
-                            lastname: true
-                        }
+                        select: { id: true, firstname: true, lastname: true }
                     },
                     _count: {
-                        select: {
-                            sales: true,
-                            tasks: true,
-                            pipelineItems: true
-                        }
+                        select: { sales: true, tasks: true, pipelineItems: true }
                     }
                 },
                 skip: parseInt(skip),
@@ -95,6 +120,15 @@ const getAllClients = async (req, res) => {
             }),
             prisma.client.count({ where })
         ]);
+
+        console.log(`[CLIENTS] ✅ Encontrados: ${clients.length} clientes de un total de ${total}`);
+
+        // 🚨 VERIFICACIÓN DE SEGURIDAD
+        clients.forEach(client => {
+            if (client.assignedToId !== userId && client.createdById !== userId) {
+                console.error(`[CLIENTS] ⚠️ PROBLEMA: Cliente ${client.id} no pertenece al usuario ${userId}`);
+            }
+        });
 
         res.json({
             clients,
@@ -107,14 +141,13 @@ const getAllClients = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error obteniendo clientes:', error);
-        res.status(500).json({
-            error: 'Error interno del servidor'
-        });
+        console.error('[CLIENTS] ❌ Error:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
 
-// Obtener cliente por ID
+
+// Obtener cliente por ID (ACTUALIZADO)
 const getClientById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -180,14 +213,21 @@ const getClientById = async (req, res) => {
             });
         }
 
-        // Verificar permisos si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
-            if (client.assignedToId !== req.user.id && client.createdById !== req.user.id) {
-                return res.status(403).json({
-                    error: 'No tienes permisos para ver este cliente'
-                });
-            }
+        // 🎯 VERIFICAR PERMISOS MEJORADOS
+        const canViewClient =
+            req.user.rol === 'SUPER_ADMIN' ||
+            req.user.rol === 'DISTRIBUIDOR' ||
+            client.assignedToId === req.user.id ||
+            client.createdById === req.user.id ||
+            (client.referredById && client.referredById === req.user.id);
+
+        if (!canViewClient) {
+            return res.status(403).json({
+                error: 'No tienes permisos para ver este cliente'
+            });
         }
+
+        console.log(`[CLIENTS] Usuario ${req.user.firstname} accedió al cliente ${client.id}`);
 
         res.json({ client });
 
@@ -199,7 +239,7 @@ const getClientById = async (req, res) => {
     }
 };
 
-// Crear cliente
+// Crear cliente (YA ESTABA BIEN)
 const createClient = async (req, res) => {
     try {
         const data = req.body;
@@ -210,6 +250,8 @@ const createClient = async (req, res) => {
         }
 
         data.createdById = req.user.id;
+
+        console.log(`[CLIENTS] Usuario ${req.user.firstname} creando cliente para ${data.assignedToId === req.user.id ? 'sí mismo' : 'otro usuario'}`);
 
         // Verificar si ya existe un cliente con el mismo teléfono o email
         if (data.telefono || data.email) {
@@ -254,6 +296,8 @@ const createClient = async (req, res) => {
             }
         });
 
+        console.log(`[CLIENTS] ✅ Cliente creado: ${client.id} - ${client.nombre} ${client.apellido}`);
+
         res.status(201).json({
             message: 'Cliente creado exitosamente',
             client
@@ -267,7 +311,7 @@ const createClient = async (req, res) => {
     }
 };
 
-// Actualizar cliente
+// Actualizar cliente (MEJORADO)
 const updateClient = async (req, res) => {
     try {
         const { id } = req.params;
@@ -284,13 +328,17 @@ const updateClient = async (req, res) => {
             });
         }
 
-        // Verificar permisos si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
-            if (existingClient.assignedToId !== req.user.id && existingClient.createdById !== req.user.id) {
-                return res.status(403).json({
-                    error: 'No tienes permisos para editar este cliente'
-                });
-            }
+        // 🎯 VERIFICAR PERMISOS MEJORADOS
+        const canEditClient =
+            req.user.rol === 'SUPER_ADMIN' ||
+            req.user.rol === 'DISTRIBUIDOR' ||
+            existingClient.assignedToId === req.user.id ||
+            existingClient.createdById === req.user.id;
+
+        if (!canEditClient) {
+            return res.status(403).json({
+                error: 'No tienes permisos para editar este cliente'
+            });
         }
 
         const updatedClient = await prisma.client.update({
@@ -314,6 +362,8 @@ const updateClient = async (req, res) => {
             }
         });
 
+        console.log(`[CLIENTS] Usuario ${req.user.firstname} actualizó cliente ${id}`);
+
         res.json({
             message: 'Cliente actualizado exitosamente',
             client: updatedClient
@@ -327,7 +377,7 @@ const updateClient = async (req, res) => {
     }
 };
 
-// Eliminar cliente
+// Eliminar cliente (MEJORADO)
 const deleteClient = async (req, res) => {
     try {
         const { id } = req.params;
@@ -352,13 +402,17 @@ const deleteClient = async (req, res) => {
             });
         }
 
-        // Verificar permisos si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
-            if (existingClient.assignedToId !== req.user.id && existingClient.createdById !== req.user.id) {
-                return res.status(403).json({
-                    error: 'No tienes permisos para eliminar este cliente'
-                });
-            }
+        // 🎯 VERIFICAR PERMISOS MEJORADOS
+        const canDeleteClient =
+            req.user.rol === 'SUPER_ADMIN' ||
+            req.user.rol === 'DISTRIBUIDOR' ||
+            existingClient.assignedToId === req.user.id ||
+            existingClient.createdById === req.user.id;
+
+        if (!canDeleteClient) {
+            return res.status(403).json({
+                error: 'No tienes permisos para eliminar este cliente'
+            });
         }
 
         // Verificar si tiene registros relacionados
@@ -377,6 +431,8 @@ const deleteClient = async (req, res) => {
             where: { id }
         });
 
+        console.log(`[CLIENTS] Usuario ${req.user.firstname} eliminó cliente ${id}`);
+
         res.json({
             message: 'Cliente eliminado exitosamente'
         });
@@ -389,31 +445,31 @@ const deleteClient = async (req, res) => {
     }
 };
 
-// Obtener estadísticas de clientes
+// Obtener estadísticas de clientes (ACTUALIZADO)
 const getClientStats = async (req, res) => {
     try {
         const { assignedTo, period = '30' } = req.query;
 
-        // Construir filtros
-        const where = {};
+        console.log(`[STATS] Usuario ${req.user.firstname} (${req.user.rol}) solicitando estadísticas`);
 
-        // Filtrar por usuario si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
-            where.OR = [
-                { assignedToId: req.user.id },
-                { createdById: req.user.id }
-            ];
-        } else if (assignedTo) {
-            where.assignedToId = assignedTo;
-        }
+        // 🎯 CONSTRUIR FILTROS BASADOS EN USUARIO
+        const where = buildUserFilters(req.user, {
+            assignedToId: assignedTo
+        });
 
         // Filtro de período
         const periodDays = parseInt(period);
         if (periodDays > 0) {
             const dateFrom = new Date();
             dateFrom.setDate(dateFrom.getDate() - periodDays);
-            where.createdAt = { gte: dateFrom };
+            if (where.AND) {
+                where.AND.push({ createdAt: { gte: dateFrom } });
+            } else {
+                where.createdAt = { gte: dateFrom };
+            }
         }
+
+        console.log(`[STATS] Filtros aplicados:`, JSON.stringify(where, null, 2));
 
         // Estadísticas básicas
         const [
@@ -475,6 +531,8 @@ const getClientStats = async (req, res) => {
             }));
         }
 
+        console.log(`[STATS] Devolviendo estadísticas: ${totalClients} clientes totales`);
+
         res.json({
             total: totalClients,
             active: activeClients,
@@ -494,7 +552,7 @@ const getClientStats = async (req, res) => {
     }
 };
 
-// Buscar clientes
+// Buscar clientes (ACTUALIZADO)
 const searchClients = async (req, res) => {
     try {
         const { q, source, estado, etapa, limit = 10 } = req.query;
@@ -505,28 +563,30 @@ const searchClients = async (req, res) => {
             });
         }
 
-        // Construir filtros
-        const where = {
-            OR: [
-                { nombre: { contains: q, mode: 'insensitive' } },
-                { apellido: { contains: q, mode: 'insensitive' } },
-                { email: { contains: q, mode: 'insensitive' } },
-                { telefono: { contains: q, mode: 'insensitive' } },
-                { empresa: { contains: q, mode: 'insensitive' } },
-                { tags: { hasSome: [q] } }
-            ]
-        };
+        console.log(`[SEARCH] Usuario ${req.user.firstname} buscando: "${q}"`);
 
-        // Filtrar por usuario si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
+        // 🎯 CONSTRUIR FILTROS BASADOS EN USUARIO
+        const where = buildUserFilters(req.user);
+
+        // Agregar términos de búsqueda
+        const searchConditions = [
+            { nombre: { contains: q, mode: 'insensitive' } },
+            { apellido: { contains: q, mode: 'insensitive' } },
+            { email: { contains: q, mode: 'insensitive' } },
+            { telefono: { contains: q, mode: 'insensitive' } },
+            { empresa: { contains: q, mode: 'insensitive' } },
+            { tags: { hasSome: [q] } }
+        ];
+
+        if (where.OR) {
+            // Si ya hay condiciones OR (filtros de usuario), combinar con AND
             where.AND = [
-                {
-                    OR: [
-                        { assignedToId: req.user.id },
-                        { createdById: req.user.id }
-                    ]
-                }
+                { OR: where.OR },
+                { OR: searchConditions }
             ];
+            delete where.OR;
+        } else {
+            where.OR = searchConditions;
         }
 
         if (source) {
@@ -556,6 +616,8 @@ const searchClients = async (req, res) => {
             orderBy: { updatedAt: 'desc' }
         });
 
+        console.log(`[SEARCH] Encontrados ${clients.length} clientes para "${q}"`);
+
         res.json({ clients });
 
     } catch (error) {
@@ -566,22 +628,17 @@ const searchClients = async (req, res) => {
     }
 };
 
-// Exportar clientes a Excel
+// Exportar clientes a Excel (ACTUALIZADO)
 const exportClients = async (req, res) => {
     try {
         const { format = 'xlsx', ...filters } = req.query;
 
-        // Construir filtros (similar a getAllClients)
-        const where = {};
+        console.log(`[EXPORT] Usuario ${req.user.firstname} exportando clientes`);
 
-        if (req.user.rol === 'EMPRENDEDOR') {
-            where.OR = [
-                { assignedToId: req.user.id },
-                { createdById: req.user.id }
-            ];
-        }
+        // 🎯 CONSTRUIR FILTROS BASADOS EN USUARIO
+        const where = buildUserFilters(req.user, filters);
 
-        // Aplicar filtros adicionales...
+        // Aplicar filtros adicionales
         if (filters.source) where.source = filters.source;
         if (filters.estado) where.estado = filters.estado;
         if (filters.etapa) where.etapa = filters.etapa;
@@ -598,6 +655,8 @@ const exportClients = async (req, res) => {
             },
             orderBy: { createdAt: 'desc' }
         });
+
+        console.log(`[EXPORT] Exportando ${clients.length} clientes`);
 
         // Crear archivo Excel
         const workbook = new ExcelJS.Workbook();
@@ -651,7 +710,8 @@ const exportClients = async (req, res) => {
         };
 
         // Configurar respuesta
-        const fileName = `clientes_${new Date().toISOString().split('T')[0]}.xlsx`;
+        const userSuffix = req.user.rol === 'SUPER_ADMIN' ? '_todos' : `_${req.user.firstname}`;
+        const fileName = `clientes${userSuffix}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
         res.setHeader(
             'Content-Type',
@@ -670,7 +730,7 @@ const exportClients = async (req, res) => {
     }
 };
 
-// Importar clientes desde Excel
+// Importar clientes desde Excel (YA ESTABA BIEN)
 const importClients = async (req, res) => {
     try {
         if (!req.file) {
@@ -704,7 +764,7 @@ const importClients = async (req, res) => {
                     direccion: row.getCell(10).value?.toString().trim(),
                     tags: row.getCell(11).value?.toString().trim().split(',').map(t => t.trim()).filter(Boolean) || [],
                     createdById: req.user.id,
-                    assignedToId: req.user.id
+                    assignedToId: req.user.id // 🎯 ASIGNAR AL USUARIO ACTUAL
                 };
 
                 // Validaciones básicas
@@ -781,6 +841,8 @@ const importClients = async (req, res) => {
             }
         }
 
+        console.log(`[IMPORT] Usuario ${req.user.firstname} importó ${createdClients.length} clientes`);
+
         res.json({
             message: 'Importación completada',
             summary: {
@@ -802,7 +864,7 @@ const importClients = async (req, res) => {
     }
 };
 
-// Actualización masiva de clientes
+// Actualización masiva de clientes (ACTUALIZADO)
 const bulkUpdateClients = async (req, res) => {
     try {
         const { clientIds, updates } = req.body;
@@ -813,8 +875,10 @@ const bulkUpdateClients = async (req, res) => {
             });
         }
 
-        // Verificar permisos para cada cliente si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
+        console.log(`[BULK] Usuario ${req.user.firstname} actualizando ${clientIds.length} clientes`);
+
+        // 🎯 VERIFICAR PERMISOS PARA CADA CLIENTE
+        if (req.user.rol === 'EMPRENDEDOR' || req.user.rol === 'ASISTENTE') {
             const userClients = await prisma.client.findMany({
                 where: {
                     id: { in: clientIds },
@@ -839,6 +903,8 @@ const bulkUpdateClients = async (req, res) => {
             data: updates
         });
 
+        console.log(`[BULK] Actualizados ${result.count} clientes`);
+
         res.json({
             message: `${result.count} clientes actualizados exitosamente`,
             updated: result.count
@@ -852,7 +918,7 @@ const bulkUpdateClients = async (req, res) => {
     }
 };
 
-// Duplicar cliente
+// Duplicar cliente (ACTUALIZADO)
 const duplicateClient = async (req, res) => {
     try {
         const { id } = req.params;
@@ -868,13 +934,17 @@ const duplicateClient = async (req, res) => {
             });
         }
 
-        // Verificar permisos si es EMPRENDEDOR
-        if (req.user.rol === 'EMPRENDEDOR') {
-            if (originalClient.assignedToId !== req.user.id && originalClient.createdById !== req.user.id) {
-                return res.status(403).json({
-                    error: 'No tienes permisos para duplicar este cliente'
-                });
-            }
+        // 🎯 VERIFICAR PERMISOS MEJORADOS
+        const canDuplicateClient =
+            req.user.rol === 'SUPER_ADMIN' ||
+            req.user.rol === 'DISTRIBUIDOR' ||
+            originalClient.assignedToId === req.user.id ||
+            originalClient.createdById === req.user.id;
+
+        if (!canDuplicateClient) {
+            return res.status(403).json({
+                error: 'No tienes permisos para duplicar este cliente'
+            });
         }
 
         // Crear copia (excluyendo campos únicos)
@@ -887,7 +957,7 @@ const duplicateClient = async (req, res) => {
                 telefono: `${telefono}_copia_${Date.now()}`,
                 email: email ? `copia_${Date.now()}_${email}` : null,
                 createdById: req.user.id,
-                assignedToId: req.user.id
+                assignedToId: req.user.id // 🎯 ASIGNAR AL USUARIO ACTUAL
             },
             include: {
                 createdBy: {
@@ -907,6 +977,8 @@ const duplicateClient = async (req, res) => {
             }
         });
 
+        console.log(`[DUPLICATE] Usuario ${req.user.firstname} duplicó cliente ${id} -> ${duplicatedClient.id}`);
+
         res.status(201).json({
             message: 'Cliente duplicado exitosamente',
             client: duplicatedClient
@@ -920,11 +992,12 @@ const duplicateClient = async (req, res) => {
     }
 };
 
+// 🚀 FUNCIÓN MEJORADA: Importar contactos
 const importContacts = async (req, res) => {
     try {
         const { contacts } = req.body;
 
-        console.log(`[CLIENTS] Importando ${contacts?.length || 0} contactos...`);
+        console.log(`[IMPORT-CONTACTS] Usuario ${req.user.firstname} (${req.user.rol}) importando ${contacts?.length || 0} contactos...`);
 
         if (!contacts || !Array.isArray(contacts) || contacts.length === 0) {
             return res.status(400).json({
@@ -942,16 +1015,16 @@ const importContacts = async (req, res) => {
             duplicates: []
         };
 
-        console.log(`[CLIENTS] Procesando ${contacts.length} contactos...`);
+        console.log(`[IMPORT-CONTACTS] Procesando ${contacts.length} contactos para usuario ${req.user.id}...`);
 
         // Procesar cada contacto individualmente
         for (let i = 0; i < contacts.length; i++) {
             const contact = contacts[i];
 
             try {
-                console.log(`[CLIENTS] Procesando contacto ${i + 1}/${contacts.length}: ${contact.nombre} ${contact.apellido}`);
+                console.log(`[IMPORT-CONTACTS] Procesando contacto ${i + 1}/${contacts.length}: ${contact.nombre} ${contact.apellido}`);
 
-                // Mapear contacto a formato de cliente
+                // 🎯 MAPEAR CONTACTO A FORMATO DE CLIENTE CON ASIGNACIÓN AUTOMÁTICA
                 const clientData = {
                     nombre: contact.nombre?.trim() || 'Sin Nombre',
                     apellido: contact.apellido?.trim() || 'Sin Apellido',
@@ -966,9 +1039,9 @@ const importContacts = async (req, res) => {
                     estado: contact.estado || 'ACTIVO',
                     etapa: contact.etapa || 'Prospecto',
                     tags: Array.isArray(contact.tags) ? contact.tags : ['importado'],
-                    notas: contact.notas || `Importado el ${new Date().toLocaleDateString()}`,
+                    notas: contact.notas || `Importado por ${req.user.firstname} el ${new Date().toLocaleDateString()}`,
                     createdById: req.user.id,
-                    assignedToId: req.user.id
+                    assignedToId: req.user.id // 🎯 SIEMPRE ASIGNAR AL USUARIO ACTUAL
                 };
 
                 // Validaciones básicas
@@ -980,25 +1053,41 @@ const importContacts = async (req, res) => {
                     throw new Error('Teléfono es requerido');
                 }
 
-                // Verificar duplicados por teléfono o email
+                // 🎯 VERIFICAR DUPLICADOS SOLO EN CLIENTES DEL USUARIO
+                const whereCondition = {
+                    OR: [
+                        { telefono: clientData.telefono },
+                        clientData.email ? { email: clientData.email } : null
+                    ].filter(Boolean)
+                };
+
+                // Si no es admin, solo buscar en sus propios clientes
+                if (req.user.rol === 'EMPRENDEDOR' || req.user.rol === 'ASISTENTE') {
+                    whereCondition.AND = [
+                        {
+                            OR: [
+                                { assignedToId: req.user.id },
+                                { createdById: req.user.id }
+                            ]
+                        }
+                    ];
+                }
+
                 const existingClient = await prisma.client.findFirst({
-                    where: {
-                        OR: [
-                            { telefono: clientData.telefono },
-                            clientData.email ? { email: clientData.email } : null
-                        ].filter(Boolean)
-                    },
+                    where: whereCondition,
                     select: {
                         id: true,
                         nombre: true,
                         apellido: true,
                         telefono: true,
-                        email: true
+                        email: true,
+                        assignedToId: true,
+                        createdById: true
                     }
                 });
 
                 if (existingClient) {
-                    console.log(`[CLIENTS] ⚠️ Contacto duplicado: ${clientData.nombre} ${clientData.apellido}`);
+                    console.log(`[IMPORT-CONTACTS] ⚠️ Contacto duplicado: ${clientData.nombre} ${clientData.apellido}`);
                     results.duplicates.push({
                         contact: clientData,
                         existingClient: existingClient
@@ -1031,10 +1120,10 @@ const importContacts = async (req, res) => {
                 results.successfulContacts.push(newClient);
                 results.successful++;
 
-                console.log(`[CLIENTS] ✅ Cliente creado: ${newClient.id} - ${newClient.nombre} ${newClient.apellido}`);
+                console.log(`[IMPORT-CONTACTS] ✅ Cliente creado: ${newClient.id} - ${newClient.nombre} ${newClient.apellido} (asignado a ${req.user.firstname})`);
 
             } catch (error) {
-                console.error(`[CLIENTS] ❌ Error procesando contacto ${i + 1}:`, error.message);
+                console.error(`[IMPORT-CONTACTS] ❌ Error procesando contacto ${i + 1}:`, error.message);
                 results.failed++;
                 results.errors.push({
                     contact: contact,
@@ -1042,9 +1131,14 @@ const importContacts = async (req, res) => {
                     index: i + 1
                 });
             }
+
+            // 🎯 MOSTRAR PROGRESO CADA 50 CONTACTOS
+            if ((i + 1) % 50 === 0) {
+                console.log(`[IMPORT-CONTACTS] 📊 Progreso: ${i + 1}/${contacts.length} (${Math.round(((i + 1) / contacts.length) * 100)}%)`);
+            }
         }
 
-        console.log(`[CLIENTS] ✅ Importación completada:`, {
+        console.log(`[IMPORT-CONTACTS] ✅ Importación completada para ${req.user.firstname}:`, {
             successful: results.successful,
             failed: results.failed,
             duplicates: results.duplicates.length,
@@ -1053,7 +1147,7 @@ const importContacts = async (req, res) => {
 
         // Respuesta con resumen completo
         res.status(200).json({
-            message: 'Importación de contactos completada',
+            message: `Importación de contactos completada para ${req.user.firstname}`,
             summary: {
                 successful: results.successful,
                 failed: results.failed,
@@ -1066,7 +1160,8 @@ const importContacts = async (req, res) => {
                     nombre: d.contact.nombre,
                     apellido: d.contact.apellido,
                     telefono: d.contact.telefono,
-                    existingId: d.existingClient.id
+                    existingId: d.existingClient.id,
+                    belongsToUser: d.existingClient.assignedToId === req.user.id || d.existingClient.createdById === req.user.id
                 })),
                 errors: results.errors.map(e => ({
                     nombre: e.contact.nombre,
@@ -1074,14 +1169,22 @@ const importContacts = async (req, res) => {
                     error: e.error,
                     index: e.index
                 }))
+            },
+            userInfo: {
+                userId: req.user.id,
+                userName: req.user.firstname,
+                userRole: req.user.rol,
+                canViewAll: ['SUPER_ADMIN', 'DISTRIBUIDOR'].includes(req.user.rol)
             }
         });
 
     } catch (error) {
-        console.error('[CLIENTS] Error en importación de contactos:', error);
+        console.error(`[IMPORT-CONTACTS] Error en importación de contactos para usuario ${req.user.firstname}:`, error);
         res.status(500).json({
             error: 'Error interno del servidor',
-            details: error.message
+            details: error.message,
+            userId: req.user.id,
+            userName: req.user.firstname
         });
     }
 };
@@ -1099,5 +1202,5 @@ module.exports = {
     importClients,
     bulkUpdateClients,
     duplicateClient,
-    importContacts // 🚀 NUEVA FUNCIÓN
+    importContacts
 };

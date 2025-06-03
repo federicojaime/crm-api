@@ -13,10 +13,10 @@ const authRoutes = require('./src/routes/auth');
 const usersRoutes = require('./src/routes/users');
 const pipelineRoutes = require('./src/routes/pipeline');
 const clientsRoutes = require('./src/routes/clients');
+const tasksRoutes = require('./src/routes/tasks'); // 🚀 NUEVO MÓDULO
 
 // TODO: Crear estas rutas más tarde
 // const salesRoutes = require('./src/routes/sales');
-// const tasksRoutes = require('./src/routes/tasks');
 // const hrRoutes = require('./src/routes/hr');
 
 // Middleware de seguridad
@@ -30,16 +30,6 @@ app.use(cors({
         : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4000'],
     credentials: true
 }));
-
-/* Rate limiting PRODUCCION
-const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutos
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // límite de requests por ventana
-    message: {
-        error: 'Demasiadas solicitudes desde esta IP, intenta de nuevo más tarde.'
-    }
-});
-app.use(limiter);*/
 
 // Rate limiting
 const limiter = rateLimit({
@@ -82,7 +72,8 @@ app.get('/', (req, res) => {
             auth: '/api/auth/*',
             users: '/api/users/*',
             pipeline: '/api/pipeline/*',
-            clients: '/api/clients/*'
+            clients: '/api/clients/*',
+            tasks: '/api/tasks/*' // 🚀 NUEVO ENDPOINT
         },
         docs: 'https://documenter.getpostman.com/view/tu-coleccion'
     });
@@ -93,10 +84,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/pipeline', pipelineRoutes);
 app.use('/api/clients', clientsRoutes);
+app.use('/api/tasks', tasksRoutes); // 🚀 NUEVA RUTA
 
 // TODO: Agregar estas rutas más tarde
 // app.use('/api/sales', salesRoutes);
-// app.use('/api/tasks', tasksRoutes);
 // app.use('/api/hr', hrRoutes);
 
 // 404 handler
@@ -113,7 +104,8 @@ app.use('*', (req, res) => {
             'GET /api/auth/profile',
             'GET /api/users',
             'GET /api/pipeline',
-            'GET /api/clients'
+            'GET /api/clients',
+            'GET /api/tasks' // 🚀 NUEVO ENDPOINT
         ]
     });
 });
@@ -179,5 +171,6 @@ app.listen(PORT, () => {
    GET  http://localhost:${PORT}/api/users
    GET  http://localhost:${PORT}/api/pipeline
    GET  http://localhost:${PORT}/api/clients
+   GET  http://localhost:${PORT}/api/tasks  🚀 NUEVO!
     `);
 });

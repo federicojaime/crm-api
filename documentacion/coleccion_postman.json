@@ -3868,5 +3868,851 @@
                 }
             ]
         }
+        {
+            "name": "📋 Tareas",
+            "item": [
+                {
+                    "name": "Listar Tareas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks?page=1&limit=50",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "PENDING",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "ALTA",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "LLAMADA",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "assignedTo",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "search",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "clientId",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "overdue",
+                                    "value": "true",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Obtener lista de tareas con filtros y paginación"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mis Tareas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/my-tasks?status=PENDING&limit=50",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "my-tasks"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "PENDING",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "50"
+                                }
+                            ]
+                        },
+                        "description": "Obtener tareas asignadas al usuario actual"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Estadísticas de Tareas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/stats?period=30",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "period",
+                                    "value": "30"
+                                },
+                                {
+                                    "key": "assignedTo",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Obtener estadísticas de tareas"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Buscar Tareas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/search?q=llamar&limit=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "llamar"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "status",
+                                    "value": "",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "priority",
+                                    "value": "",
+                                    "disabled": true
+                                }
+                            ]
+                        },
+                        "description": "Buscar tareas por término"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Tareas Vencidas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/overdue?limit=20",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "overdue"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Obtener tareas vencidas"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Tareas Próximas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/upcoming?days=3&limit=20",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "upcoming"
+                            ],
+                            "query": [
+                                {
+                                    "key": "days",
+                                    "value": "3"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ]
+                        },
+                        "description": "Obtener tareas próximas a vencer"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Crear Tarea",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    const response = pm.response.json();",
+                                    "    pm.environment.set('task_id', response.task.id);",
+                                    "    console.log('Tarea creada con ID:', response.task.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Llamar a cliente importante\",\n  \"description\": \"Seguimiento post-venta para evaluar satisfacción\",\n  \"type\": \"LLAMADA\",\n  \"status\": \"PENDING\",\n  \"priority\": \"ALTA\",\n  \"dueDate\": \"2024-01-25T14:00:00.000Z\",\n  \"reminderEnabled\": true,\n  \"reminderTime\": \"30\",\n  \"clientId\": \"{{client_id}}\",\n  \"assignedToId\": \"{{user_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks"
+                            ]
+                        },
+                        "description": "Crear nueva tarea"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Obtener Tarea por ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}"
+                            ]
+                        },
+                        "description": "Obtener detalles de una tarea específica"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualizar Tarea",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Llamar a cliente importante - URGENTE\",\n  \"description\": \"Seguimiento urgente post-venta y resolución de dudas\",\n  \"type\": \"LLAMADA\",\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"ALTA\",\n  \"dueDate\": \"2024-01-25T10:00:00.000Z\",\n  \"reminderEnabled\": true,\n  \"reminderTime\": \"15\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}"
+                            ]
+                        },
+                        "description": "Actualizar información de una tarea"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cambiar Estado",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"IN_PROGRESS\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/status",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "status"
+                            ]
+                        },
+                        "description": "Cambiar estado de una tarea"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Marcar como Completada",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/complete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "complete"
+                            ]
+                        },
+                        "description": "Marcar tarea como completada"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Iniciar Tarea",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/start",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "start"
+                            ]
+                        },
+                        "description": "Marcar tarea como en progreso"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cancelar Tarea",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "cancel"
+                            ]
+                        },
+                        "description": "Cancelar una tarea"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Cambiar Prioridad",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"priority\": \"ALTA\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/priority",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "priority"
+                            ]
+                        },
+                        "description": "Cambiar prioridad de una tarea"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Duplicar Tarea",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/duplicate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "duplicate"
+                            ]
+                        },
+                        "description": "Duplicar una tarea existente"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Sincronizar con Google Calendar",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"eventData\": {\n    \"id\": \"evento_google_123\",\n    \"summary\": \"Llamar a cliente importante\",\n    \"start\": {\n      \"dateTime\": \"2024-01-25T14:00:00.000Z\"\n    },\n    \"end\": {\n      \"dateTime\": \"2024-01-25T15:00:00.000Z\"\n    }\n  },\n  \"calendarId\": \"primary\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/sync-calendar",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "sync-calendar"
+                            ]
+                        },
+                        "description": "Sincronizar tarea con Google Calendar"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Configurar Recordatorio",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"reminderTime\": \"30\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}/reminder",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}",
+                                "reminder"
+                            ]
+                        },
+                        "description": "Configurar recordatorio para una tarea"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Actualización Masiva",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"taskIds\": [\"{{task_id}}\"],\n  \"updates\": {\n    \"priority\": \"ALTA\",\n    \"status\": \"IN_PROGRESS\"\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/bulk-update",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "bulk-update"
+                            ]
+                        },
+                        "description": "Actualización masiva de múltiples tareas (solo ADMIN/DISTRIBUIDOR)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Completar Múltiples Tareas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"taskIds\": [\"{{task_id}}\"]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/bulk-complete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "bulk-complete"
+                            ]
+                        },
+                        "description": "Completar múltiples tareas (solo ADMIN/DISTRIBUIDOR)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Asignar Múltiples Tareas",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"taskIds\": [\"{{task_id}}\"],\n  \"assignedToId\": \"{{user_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/bulk-assign",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "bulk-assign"
+                            ]
+                        },
+                        "description": "Asignar múltiples tareas a un usuario (solo ADMIN/DISTRIBUIDOR)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Eliminar Tarea",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{auth_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/tasks/{{task_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{task_id}}"
+                            ]
+                        },
+                        "description": "Eliminar una tarea"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Gestión completa de tareas del CRM"
+        }
     ]
 }

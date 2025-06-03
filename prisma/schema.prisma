@@ -1,4 +1,4 @@
-// Prisma Schema para CRM
+// Prisma Schema para CRM - ACTUALIZADO CON TAREAS
 generator client {
   provider = "prisma-client-js"
 }
@@ -32,6 +32,7 @@ model User {
   assignedTasks     Task[]         @relation("AssignedTo")
   pipelineItems     PipelineItem[] @relation("AssignedTo")
   hrCandidates      HRCandidate[]  @relation("AssignedTo")
+  taskHistoryChanges TaskHistory[] @relation("ChangedBy") // 🚀 NUEVO
 
   @@map("users")
 }
@@ -64,7 +65,7 @@ model Client {
   
   sales           Sale[]
   pipelineItems   PipelineItem[]
-  tasks           Task[]
+  tasks           Task[]        // 🚀 NUEVA RELACIÓN
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -111,8 +112,6 @@ model Sale {
 // Modelo de Pipeline de Ventas
 model PipelineItem {
   id              String           @id @default(cuid())
-  name            String
-  phone           String
   products        String[]         // Array de productos
   value           String?
   priority        Priority         @default(MEDIA)
@@ -125,8 +124,8 @@ model PipelineItem {
   tags            String[]         // Array de etiquetas
   
   // Relaciones
-  client          Client?          @relation(fields: [clientId], references: [id])
-  clientId        String?
+  client          Client           @relation(fields: [clientId], references: [id])
+  clientId        String
   assignedTo      User?            @relation("AssignedTo", fields: [assignedToId], references: [id])
   assignedToId    String?
   
@@ -136,7 +135,7 @@ model PipelineItem {
   @@map("pipeline_items")
 }
 
-// Modelo de Tareas
+// 🚀 MODELO DE TAREAS (NUEVO)
 model Task {
   id              String        @id @default(cuid())
   title           String
@@ -159,10 +158,30 @@ model Task {
   assignedTo      User          @relation("AssignedTo", fields: [assignedToId], references: [id])
   assignedToId    String
   
+  // Historial de cambios
+  history         TaskHistory[] @relation("TaskHistory")
+  
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@map("tasks")
+}
+
+// 🚀 MODELO DE HISTORIAL DE TAREAS (NUEVO)
+model TaskHistory {
+  id              String    @id @default(cuid())
+  taskId          String
+  action          String    // CREATED, UPDATED, STATUS_CHANGED, ASSIGNED, DELETED
+  oldData         Json?     // Datos anteriores
+  newData         Json?     // Datos nuevos
+  timestamp       DateTime  @default(now())
+  
+  // Relaciones
+  task            Task      @relation("TaskHistory", fields: [taskId], references: [id], onDelete: Cascade)
+  changedBy       User      @relation("ChangedBy", fields: [changedById], references: [id])
+  changedById     String
+
+  @@map("task_history")
 }
 
 // Modelo de Candidatos RRHH
@@ -257,6 +276,7 @@ enum Priority {
   BAJA
 }
 
+// 🚀 NUEVOS ENUMS PARA TAREAS
 enum TaskType {
   LLAMADA
   EMAIL
